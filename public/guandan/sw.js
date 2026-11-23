@@ -1,7 +1,7 @@
-/* HHgames v1.22.2 legacy Guandan compatibility worker.
+/* HHgames v1.22.3 legacy Guandan compatibility worker.
  * The main /sw.js now owns all pages. This one only keeps older installed
  * Guandan shortcuts working until the old nested registration is removed. */
-const CACHE='guandan-hhgames-v1.22.2-migrate';
+const CACHE='guandan-hhgames-v1.22.3-migrate';
 const FILES=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./apple-touch-icon.png'];
 self.addEventListener('install',e=>e.waitUntil((async()=>{
   const c=await caches.open(CACHE);

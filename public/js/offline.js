@@ -1,121 +1,110 @@
-/* HHgames offline setup: show an accurate ready status in the hub.
- * Important on iPad: Home Screen apps may have separate storage from Safari. */
-(function(){'use strict';
-const CACHE_NAME="hhgames-v1.22.2-offline-20261123a";
-const FILES=["./","./index.html","./style.css","./js/engine.js","./js/bot.js","./js/friends.js","./js/app.js","./js/offline.js","./assets/hh.svg","./assets/icon-192.png","./assets/icon-512.png","./manifest.webmanifest","./hh-theme.css","./hh-tractor.css","./hh-v06.css","./hh-v07.css","./hh-v08.css","./hh-v10.css","./hh-v12.css","./hh-v13.css","./hh-v14.css","./hh-v17.css","./hh-v19.css","./hh-v112.css","./hh-v115.css","./hh-v116.css","./hh-v117.css","./hh-v118.css","./hh-v120.css","./hh-v122.css","./assets/avatars/mr-q.webp","./assets/avatars/prof-wang.webp","./assets/avatars/hh-boy.webp","./assets/avatars/hh-girl.webp","./guandan/","./guandan/index.html","./guandan/sw.js","./guandan/manifest.webmanifest","./guandan/icon-192.png","./guandan/icon-512.png","./guandan/apple-touch-icon.png"];
-const panel=document.getElementById('offlineInstallPanel');
-const button=document.getElementById('offlinePrepareBtn');
-const display=document.getElementById('offlineInstallStatus');
+/* HHgames v1.22.3 offline setup, verified against the same manifest as sw.js. */
+(()=>{'use strict';
+const VERSION='1.22.3',CACHE_NAME='hhgames-v1.22.3-offline-20261123',FILES=["./","./index.html","./style.css","./js/engine.js","./js/bot.js","./js/friends.js","./js/app.js","./js/offline.js","./assets/hh.svg","./assets/icon-192.png","./assets/icon-512.png","./manifest.webmanifest","./hh-theme.css","./hh-tractor.css","./hh-v06.css","./hh-v07.css","./hh-v08.css","./hh-v10.css","./hh-v12.css","./hh-v13.css","./hh-v14.css","./hh-v17.css","./hh-v19.css","./hh-v112.css","./hh-v115.css","./hh-v116.css","./hh-v117.css","./hh-v118.css","./hh-v120.css","./hh-v122.css","./assets/avatars/mr-q.webp","./assets/avatars/prof-wang.webp","./assets/avatars/hh-boy.webp","./assets/avatars/hh-girl.webp","./guandan/index.html","./guandan/sw.js","./guandan/manifest.webmanifest","./guandan/icon-192.png","./guandan/icon-512.png","./guandan/apple-touch-icon.png"];
+const panel=document.getElementById('offlineInstallPanel'),button=document.getElementById('offlinePrepareBtn'),display=document.getElementById('offlineInstallStatus');
 if(!panel||!button||!display)return;
 const zh=(navigator.language||'').toLowerCase().startsWith('zh');
 const say=(cn,en)=>zh?cn:en;
-let busy=false,registration=null,lastError='';
-function report(state,msg){panel.dataset.state=state;display.textContent=msg;}
-function modeReady(r){
-  if(!r.ready)return false;
-  busy=false;button.disabled=false;
-  const controller=navigator.serviceWorker.controller;
-  const expected=new URL('./sw.js?v=1.22.2',document.baseURI);
-  if(!controller || new URL(controller.scriptURL).pathname!==expected.pathname || new URL(controller.scriptURL).searchParams.get('v')!=='1.22.2' || r.total!==FILES.length){
-    report('partial',say('文件已经缓存，但页面尚未由正确的离线程序控制。请保持联网并刷新一次。','Files cached, but the correct offline controller is not active. Reload once while online.'));
-    return true;
-  }
-  report('ready',say('✓ 已准备好离线玩（'+r.cached+'/'+r.total+' 个文件），可关闭 Wi-Fi 测试。',
-    '✓ Offline ready and controlled ('+r.cached+'/'+r.total+' files). Test with Wi-Fi off.'));
-  button.textContent=say('重新检查 / 下载','Check / Download Again');
-  return true;
-}
+const scopeURL=new URL('./',document.baseURI);
+let busy=false,timer=null,lastProblem='';
+const report=(state,msg)=>{panel.dataset.state=state;display.textContent=msg;};
+const workerVersion=w=>{try{return new URL(w?.scriptURL||'').searchParams.get('v')}catch(e){return null}};
 async function localStatus(){
-  if(!('caches' in window))return {cached:0,total:FILES.length,ready:false};
-  const cache=await caches.open(CACHE_NAME);let cached=0;
-  for(const file of FILES)if(await cache.match(new URL(file,new URL('./',document.baseURI))))cached++;
-  return {cached,total:FILES.length,ready:cached===FILES.length};
+  const c=await caches.open(CACHE_NAME),missing=[];
+  for(const p of FILES)if(!await c.match(new URL(p,scopeURL)))missing.push(p);
+  return {cached:FILES.length-missing.length,total:FILES.length,ready:!missing.length,missing};
 }
-async function refresh(){
-  try{
-    const state=await localStatus();
-    if(modeReady(state))return;
-    if(busy)return;
-    report('partial',say('尚未缓存完整：'+state.cached+'/'+state.total+' 个文件。请联网后点击右侧按钮。',
-      'Not fully saved: '+state.cached+'/'+state.total+' files. Connect to internet, then use the button.'));
-  }catch(err){report('error',say('无法读取本机缓存：','Cannot check device cache: ')+String(err));}
-}
-
-async function removeLegacyGuandanWorker(){
-  // Guandan used to register a separate /guandan/sw.js (network-first).
-  // Its fetch listener could block game navigation when offline. Remove it.
-  try {
-    const url=new URL('./guandan/',document.baseURI);
-    const reg=await navigator.serviceWorker.getRegistration(url.href);
-    if(reg && reg.scope===url.href) await reg.unregister();
-  } catch(e){}
-}
-
-async function ensureRegistration(){
-  if(!('serviceWorker' in navigator))throw new Error(say('此浏览器不支持离线安装','Browser does not support service workers'));
-  if(location.protocol!=='https:' && location.hostname!=='localhost'&&location.hostname!=='127.0.0.1')
-    throw new Error(say('请使用 Cloudflare HTTPS 网站','Use the Cloudflare HTTPS site'));
-  await removeLegacyGuandanWorker();
-  registration=await navigator.serviceWorker.register('./sw.js?v=1.22.2',{scope:'./',updateViaCache:'none'});
-  registration.update().catch(()=>{});
-  // The previous worker can remain active while V1.22.2 is installing.
-  // Never send offline downloads to the older 40-file controller.
-  const until=Date.now()+20000;
-  while(Date.now()<until){
-    const active=registration.active;
-    if(active && new URL(active.scriptURL).searchParams.get('v')==='1.22.2')return active;
-    await new Promise(resolve=>setTimeout(resolve,160));
+async function displayStatus(s){
+  if(!s)return;
+  if(s.ready){
+    const active=await navigator.serviceWorker.getRegistration(scopeURL.href);
+    const current=workerVersion(navigator.serviceWorker.controller)===VERSION && workerVersion(active?.active)===VERSION;
+    if(current){
+      report('ready',say('✓ 离线可用：'+s.cached+'/'+s.total+' 个文件已保存。关闭 Wi-Fi 后也可启动游戏。',
+        '✓ Offline ready: '+s.cached+'/'+s.total+' files saved. You can launch with Wi-Fi off.'));
+    }else{
+      report('partial',say('所有文件已保存，但新离线程序尚未接管。请保持联网刷新网页一次。',
+        'All files cached; reload once online so the new offline controller takes over.'));
+    }
+    return;
   }
-  throw new Error('Offline engine update not active yet; reload once online.');
+  const first=(s.errors?.[0]||s.missing?.[0]||'');
+  const detail=first?' · '+first:'';
+  report('partial',say('离线缓存未完成：'+s.cached+'/'+s.total+'。缺少 '+(s.total-s.cached)+' 个文件'+detail+'。保持联网点击「下载」。',
+    'Offline incomplete: '+s.cached+'/'+s.total+'; '+(s.total-s.cached)+' missing'+detail+'. Stay online and click Download.'));
 }
-function handleMessage(event){
-  if(event.data?.type!=='HH_OFFLINE_STATUS')return;
-  busy=false;button.disabled=false;
-  const s=event.data;
-  if(modeReady(s))return;
-  const details=(s.errors&&s.errors.length)?' ('+s.errors[0]+')':'';
-  report('error',say('离线下载不完整：','Offline download incomplete: ')+s.cached+'/'+s.total+details+
-    say('。请联网重试。','. Retry while connected.'));
-}
-async function prepare(auto=false){
-  if(busy||location.protocol==='file:')return;
-  busy=true;button.disabled=true;
-  report('loading',say('正在保存游戏文件，请保持联网…','Saving game files; keep the internet connected…'));
+async function unregisterLegacy(){
   try{
-    const sw=await ensureRegistration();
-    if(!sw)throw new Error('Service worker not activated');
-    sw.postMessage({type:'HH_PREPARE_OFFLINE'});
-    // Retry stays possible if iPadOS suspends the worker before it replies.
-    setTimeout(async()=>{if(!busy)return;busy=false;button.disabled=false;await refresh();},60000);
-  }catch(err){
-    lastError=String(err);busy=false;button.disabled=false;
-    report('error',say('离线安装失败：','Offline setup failed: ')+lastError);
+    const inner=new URL('./guandan/',scopeURL);
+    const r=await navigator.serviceWorker.getRegistration(inner.href);
+    if(r&&r.scope===inner.href)await r.unregister();
+  }catch(e){}
+}
+async function setupWorker(){
+  if(!('serviceWorker' in navigator)||!('caches' in window))throw Error('Service workers/CacheStorage unavailable');
+  if(location.protocol!=='https:'&&!['localhost','127.0.0.1'].includes(location.hostname))throw Error('Use the HTTPS website');
+  await unregisterLegacy();
+  const reg=await navigator.serviceWorker.register('./sw.js?v='+VERSION,{scope:'./',updateViaCache:'none'});
+  if(workerVersion(reg.active)!==VERSION){
+    await Promise.race([new Promise((resolve,reject)=>{
+       const t=setTimeout(()=>reject(Error('Offline worker update timed out')),18000);
+       const check=()=>{if(workerVersion(reg.active)===VERSION){clearTimeout(t);reg.removeEventListener('updatefound',check);resolve();}};
+       check();reg.addEventListener('updatefound',check);
+       const installing=reg.installing||reg.waiting;
+       installing?.addEventListener('statechange',check);
+       navigator.serviceWorker.addEventListener('controllerchange',check,{once:true});
+       const poll=setInterval(()=>{if(workerVersion(reg.active)===VERSION){clearInterval(poll);check();}},250);
+       setTimeout(()=>clearInterval(poll),18500);
+    }),navigator.serviceWorker.ready]);
+    if(workerVersion(reg.active)!==VERSION){
+      // navigator.serviceWorker.ready may refer to an old controller; wait for
+      // the new one rather than posting to an outdated manifest.
+      let i=0;while(i++<65&&workerVersion(reg.active)!==VERSION)await new Promise(r=>setTimeout(r,200));
+    }
   }
+  if(workerVersion(reg.active)!==VERSION)throw Error('New offline worker not active; refresh online');
+  return reg.active;
 }
-button.addEventListener('click',()=>prepare(false));
-if(location.protocol==='file:'){
-  panel.classList.add('hidden');return;
+async function refresh(){try{await displayStatus(await localStatus())}catch(e){report('error',String(e))}}
+function setIdle(){busy=false;button.disabled=false;if(timer){clearTimeout(timer);timer=null}}
+async function prepare(){
+ if(busy||location.protocol==='file:')return;
+ busy=true;button.disabled=true;lastProblem='';
+ report('loading',say('下载离线文件中…请保持联网','Downloading offline files… Keep Wi-Fi on'));
+ try{
+   const sw=await setupWorker();
+   const s=await localStatus();
+   if(s.ready){setIdle();await displayStatus(s);return;}
+   sw.postMessage({type:'HH_PREPARE_OFFLINE'});
+   timer=setTimeout(async()=>{setIdle();await refresh();},60000);
+ }catch(e){setIdle();lastProblem=String(e);report('error',say('离线程序安装失败：','Offline installation failed: ')+lastProblem)}
 }
-if(!('serviceWorker' in navigator)){
-  report('error',say('此浏览器不支持离线安装','This browser does not support offline installation'));
-  button.disabled=true;return;
+function message(ev){
+ const s=ev.data;
+ if(s?.type==='HH_OFFLINE_PROGRESS'&&busy){
+  report('loading',say('正在缓存游戏：'+s.done+'/'+s.totalJobs+' 文件…','Caching games: '+s.done+'/'+s.totalJobs+' files…'));
+ } else if(s?.type==='HH_OFFLINE_STATUS'){
+  setIdle();displayStatus(s);
+ }
 }
-navigator.serviceWorker.addEventListener('message',handleMessage);
+button.addEventListener('click',prepare);
+if(location.protocol==='file:'){panel.classList.add('hidden');return}
+if(!('serviceWorker' in navigator)||!('caches' in window)){
+ report('error',say('此浏览器无法安装离线网站','Browser cannot install this offline website'));button.disabled=true;return;
+}
+navigator.serviceWorker.addEventListener('message',message);
 navigator.serviceWorker.addEventListener('controllerchange',refresh);
 window.addEventListener('online',refresh);
 window.addEventListener('offline',refresh);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
 async function start(){
-  await refresh();
-  try{
-    await ensureRegistration();
-    const state=await localStatus();
-    if(!state.ready&&navigator.onLine)await prepare(true);
-    else await refresh();
-  }catch(err){
-    report('error',say('离线程序尚未就绪，请点击下载按钮。','Offline engine not ready. Use Download button.')+' '+String(err));
-  }
+ await refresh();
+ try{
+   // Register even if the previous version was fully cached.
+   await setupWorker();
+   const s=await localStatus();
+   if(!s.ready&&navigator.onLine)await prepare();else await displayStatus(s);
+ }catch(e){report('error',say('请保持联网并点击「下载离线游戏」：','Connect online then click Save Offline: ')+String(e))}
 }
-// Defer setup until initial UI scripts have finished loading.
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
