@@ -61,6 +61,13 @@ html,body{margin:0;height:100%;overflow:hidden;background:#06261a;font:15px/1.4 
 #net.on{display:inline-block}#net.bad{background:#8a3b2e}
 #lobby{position:fixed;inset:0;z-index:800;display:none;align-items:center;justify-content:center;padding:16px;background:radial-gradient(ellipse at 50% 40%,#17734f 0%,#0f5a3e 45%,#0a3f2b 100%)}
 #lobby.show{display:flex}
+/* The start modal and room lobby cover the top toolbar. Always provide a
+   separate, accessible route back to the parent HHgames game hall. */
+#modal,#lobby{padding-top:calc(64px + env(safe-area-inset-top))}
+.hh-overlay-home{position:absolute;top:calc(10px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));z-index:10;display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:8px 14px;border:1.5px solid #ecd49b;border-radius:9px;background:#113d2d;color:#fff1c8;font-size:15px;font-weight:750;text-decoration:none;box-shadow:0 2px 8px #0004;touch-action:manipulation}
+.hh-overlay-home:hover,.hh-overlay-home:focus-visible{background:#20583f;outline:2px solid #fff1c8;outline-offset:2px}
+#modal>.box,#lobby>.box{max-height:100%}
+
 #lobby .box{max-width:520px}
 .lk{display:flex;gap:6px;align-items:center;margin:6px 0 10px}
 .lk input,.nmrow input,.srv input{flex:1;font-size:16px;padding:8px 10px;border-radius:8px;border:1px solid #bbb;background:#fff;color:#14231c;min-height:40px}
@@ -229,8 +236,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:#06261a;font:15px/1.4 
   </div>
   <div id="hand"></div>
 </div>
-<div id="lobby"><div class="box" id="lbox"></div></div>
-<div id="modal"><div class="box" id="mbox"></div></div>
+<div id="lobby"><a class="hh-overlay-home" href="../index.html" aria-label="返回 HHgames 游戏大厅 · Return to Game Hall">← 返回游戏大厅 / Game Hall</a><div class="box" id="lbox"></div></div>
+<div id="modal"><a class="hh-overlay-home" href="../index.html" aria-label="返回 HHgames 游戏大厅 · Return to Game Hall">← 返回游戏大厅 / Game Hall</a><div class="box" id="mbox"></div></div>
 <script id="eng">
 // ===================== 掼蛋引擎 =====================
 const SUIT_SYM = ['♠', '♥', '♣', '♦'];
@@ -1884,7 +1891,7 @@ setLang(LANG);
   loadOffline(); render();
   if (IN_CLAUDE || q.get('mode') === 'offline') newRound(); else startScreen();
 })();
-try { if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !IN_CLAUDE) navigator.serviceWorker.register('sw.js').catch(() => {}); } catch (e) {}
+try { if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !IN_CLAUDE) navigator.serviceWorker.register('sw.js?v=1.22.0').catch(() => {}); } catch (e) {}
 }
 </script>
 </body>

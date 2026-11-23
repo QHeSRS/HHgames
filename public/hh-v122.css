@@ -1,0 +1,83 @@
+/* HHgames v1.22: touch-first trump declaration and enlarged rank numerals.
+   The bidding dock is a separate sibling of the pulsing phase status overlay. */
+body.playing .felt { position:relative; }
+body.playing .felt > .bid-dock {
+ position:absolute!important; z-index:35!important; left:50%!important; top:53%!important;
+ transform:translate(-50%,-50%)!important; width:min(740px,97%)!important;
+ max-height:min(162px,72%)!important; box-sizing:border-box;
+ padding:9px 12px 10px!important; border-radius:13px;
+ border:2px solid #f4c96c; background:rgba(10,36,37,.97);
+ box-shadow:0 10px 30px #00160cb8; overflow-y:auto; overscroll-behavior:contain;
+ pointer-events:auto; touch-action:pan-y;
+}
+body.playing .felt > .bid-dock.hidden { display:none!important; }
+.bid-dock-heading { display:flex;gap:7px;align-items:baseline;flex-wrap:wrap;color:#fff4d9;margin-bottom:7px; }
+.bid-dock-heading strong{font-size:15px;font-weight:850;letter-spacing:.3px;white-space:nowrap}
+.bid-dock-heading span{font-size:11px;color:#c1e3dc}
+.bid-dock-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:7px}
+body.playing .bid-big-button{
+ display:inline-flex;align-items:center;justify-content:center;gap:5px;
+ min-width:108px; min-height:49px; padding:8px 13px; margin:0;
+ border:2px solid #d8c999; border-radius:11px; background:#fffdf6;color:#182e2d;
+ font-weight:800;font-size:18px;cursor:pointer;touch-action:manipulation;
+ -webkit-tap-highlight-color:rgba(0,0,0,0);user-select:none;
+ box-shadow:0 2px 0 #967c3a;
+}
+body.playing .bid-big-button:focus-visible {outline:3px solid #73e8ff;outline-offset:2px}
+body.playing .bid-big-button:active{background:#f9e6ab;transform:translateY(1px)}
+body.playing .bid-big-button .suit-glyph{font-size:28px;font-weight:900;line-height:1}
+body.playing .bid-big-button .suit-glyph.suit-red,
+body.playing .bid-big-button .bid-joker.red{color:#be122c!important}
+body.playing .bid-big-button .suit-glyph.suit-dark{color:#172435!important}
+body.playing .bid-big-button .suit-readable-name{font-size:16px}
+body.playing .bid-big-button .bid-level{font-size:11px;white-space:nowrap}
+body.playing .bid-big-button .bid-verb{font-size:11px;color:#465c5a;margin-left:2px}
+body.playing .bid-big-button .bid-count{font-size:15px}
+body.playing .bid-confirm{background:#d7ac4b;color:#182a22;border-color:#ffdc86;font-size:14px;min-width:172px}
+body.playing .bid-no-option{align-self:center;font-size:13px;color:#fff7e3;min-height:34px;display:flex;align-items:center}
+/* Colors and actual suit names provide redundant, accessible cues in status and info. */
+body.playing .suit-glyph.suit-red{color:#ff8b9d;font-weight:900!important}
+body.playing .suit-glyph.suit-dark{color:#f2f5ff;font-weight:900!important}
+body.playing .suit-readable-name{font-size:.84em;white-space:nowrap;margin-left:2px}
+body.playing .colored-card-label.red{color:#ff8b9d;font-weight:850}
+body.playing .colored-card-label:not(.red){color:#ecf4fa;font-weight:850}
+body.playing .friend-call-grid .friend-call-select{font-size:14px;font-weight:700}
+body.playing .friend-suit-preview{font-weight:900;margin-left:5px}
+body.playing .friend-suit-preview.red{color:#d11a3a}
+body.playing .friend-suit-preview.black{color:#22334b}
+/* New scale: the old Large is now Normal, old Extra Large is now Large,
+   and Extra Large gets a new larger value. Override earlier !important sizes. */
+body.playing[data-card-size="normal"] .card-pack .compact-face .card-index strong{font-size:clamp(15px,1.45vw,21px)!important}
+body.playing[data-card-size="large"] .card-pack .compact-face .card-index strong{font-size:clamp(17px,1.7vw,24px)!important}
+body.playing[data-card-size="xlarge"] .card-pack .compact-face .card-index strong{font-size:clamp(20px,1.95vw,28px)!important;letter-spacing:-.8px!important}
+body.playing[data-card-size="normal"] .card-pack .compact-face .card-index em{font-size:clamp(14px,1.3vw,19px)!important}
+body.playing[data-card-size="large"] .card-pack .compact-face .card-index em{font-size:clamp(16px,1.6vw,22px)!important}
+body.playing[data-card-size="xlarge"] .card-pack .compact-face .card-index em{font-size:clamp(19px,1.85vw,26px)!important}
+body.playing[data-card-size="normal"] .trick-faces .playing-card.mini .card-index strong{font-size:clamp(14px,1.45vw,18px)!important}
+body.playing[data-card-size="large"] .trick-faces .playing-card.mini .card-index strong{font-size:clamp(16px,1.6vw,21px)!important}
+body.playing[data-card-size="xlarge"] .trick-faces .playing-card.mini .card-index strong{font-size:clamp(18px,1.85vw,24px)!important}
+body.playing[data-card-size="normal"] .hand-stack .hand-face .card-index strong{font-size:clamp(13px,1.3vw,20px)!important}
+body.playing[data-card-size="large"] .hand-stack .hand-face .card-index strong{font-size:clamp(15px,1.55vw,23px)!important}
+body.playing[data-card-size="xlarge"] .hand-stack .hand-face .card-index strong{font-size:clamp(18px,1.9vw,27px)!important}
+@media(max-width:650px){
+ body.playing .felt>.bid-dock{top:51%!important;width:98%!important;padding:6px 7px!important;max-height:80%!important}
+ .bid-dock-heading{margin-bottom:4px}
+ .bid-dock-heading strong{font-size:11px}
+ .bid-dock-heading span{font-size:9px}
+ .bid-dock-actions{gap:4px}
+ body.playing .bid-big-button{min-width:82px;min-height:44px;padding:5px 7px;font-size:14px;border-radius:9px}
+ body.playing .bid-big-button .suit-glyph{font-size:21px}
+ body.playing .bid-big-button .suit-readable-name{font-size:12px}
+ body.playing .bid-big-button .bid-verb{font-size:9px}
+ body.playing .bid-confirm{min-width:138px;font-size:12px}
+ body.playing[data-card-size="normal"] .card-pack .compact-face .card-index strong{font-size:15px!important}
+ body.playing[data-card-size="large"] .card-pack .compact-face .card-index strong{font-size:18px!important}
+ body.playing[data-card-size="xlarge"] .card-pack .compact-face .card-index strong{font-size:21px!important}
+ body.playing[data-card-size="normal"] .trick-faces .playing-card.mini .card-index strong{font-size:13px!important}
+ body.playing[data-card-size="large"] .trick-faces .playing-card.mini .card-index strong{font-size:16px!important}
+ body.playing[data-card-size="xlarge"] .trick-faces .playing-card.mini .card-index strong{font-size:19px!important}
+}
+@media(max-width:650px) and (max-height:500px){
+ body.playing .felt>.bid-dock{max-height:93%!important;top:51%!important}
+ .bid-dock-heading span{display:none}
+}

@@ -1,9 +1,9 @@
 /* HHgames rules engine: zero external dependencies. JavaScript usable in browsers and Node. */
 (function(root){'use strict';
 const E={};
-E.VERSION='2026-11-23 · v1.21.0';
+E.VERSION='2026-11-23 · v1.22.0';
 E.SUITS=['S','H','D','C']; E.SYMBOL={S:'♠',H:'❤',D:'♦',C:'♣',J:'★',N:'NT'};
-E.DEFAULTS={decks:2, bonusOnTakeover:false, names:['Mr. Q','HH Boy','Prof. Wang','HH Girl'], difficulty:'expert', speed:'normal', language:'zh', allowThrows:false, kittyMultiplier:'classic', showHints:true, autoMrQ:false, handSort:'smart',dealSpeed:'normal',cardSize:'large',dealerMode:'teamRotation',counterbidTakesDealer:false,jMustDefend:true};
+E.DEFAULTS={decks:2, bonusOnTakeover:true, names:['Mr. Q','HH Boy','Prof. Wang','HH Girl'], difficulty:'expert', speed:'normal', language:'zh', allowThrows:true, kittyMultiplier:'classic', showHints:true, autoMrQ:false, handSort:'smart',dealSpeed:'normal',cardSize:'large',dealerMode:'teamRotation',counterbidTakesDealer:false,jMustDefend:true};
 const clone=x=>JSON.parse(JSON.stringify(x)); E.clone=clone;
 E.key=c=>c.s+':'+c.r;
 E.label=c=>c.s==='J'?(c.r===17?'RJ':'BJ'):(c.r===14?'A':c.r===13?'K':c.r===12?'Q':c.r===11?'J':c.r)+E.SYMBOL[c.s];

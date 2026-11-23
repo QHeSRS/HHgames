@@ -31,6 +31,16 @@ function profile(mode){
  return src;
 }
 const profiles={classic:profile('classic'),friends:profile('friends')};
+// V1.22.0: one-time upgrade of historical v1.21 defaults. Later user choices
+// stay intact; this migration does not re-enable options on every load.
+if(!load('HHgames.defaults-migrated.v1.22.0',false)){
+ for(const mode of ['classic','friends']){
+  Object.assign(profiles[mode],{bonusOnTakeover:true,allowThrows:true,jMustDefend:true});
+  save(mode==='friends'?'HHgames.friends.settings.v1':'HHgames.tractor.settings.v1',profiles[mode]);
+ }
+ save('HHgames.defaults-migrated.v1.22.0',true);
+}
+
 let activeMode=load('HHgames.activeMode.v1',legacySettings?.gameMode||'classic')==='friends'?'friends':'classic';
 let settings=profiles[activeMode];
 function currentKey(mode){return mode==='friends'?'HHgames.friends.current.v1':'HHgames.tractor.current.v1'}
@@ -286,8 +296,16 @@ function bankerIsSet(){return G&&(G.handNo>1||G.bids.length>0||!['dealing','bid'
 
 function teamWinLabel(winner){if(friendsOn())return G.allies.includes(winner)?tr('庄家阵营赢墩','Dealer side wins trick'):tr('闲家阵营赢墩','Attackers win trick');return E.team(winner)===0?tr('我方胜','Our side wins'):tr('对方胜','Opponents win')}
 function teamWinClass(winner){return (friendsOn()?G.allies.includes(winner):E.team(winner)===0)?'our-win':'their-win'}
-function suitGlyph(s){const symbol=E.SYMBOL[s]||'';return `<span class="suit-glyph ${s==='H'||s==='D'?'suit-red':'suit-dark'}">${escape(symbol)}</span>`;}
-function bidSummaryHtml(b){if(!b)return tr('等待亮主','Awaiting bid');const count=b.count||b.ids?.length||1;const suit=b.suit==='N'?(b.kind==='red-joker'?tr('大王','Red Joker'):tr('小王','Black Joker')):suitGlyph(b.suit);const level=friendsOn()&&b.level?` · ${tr('打','Level ')}${levelName(b.level)}`:'';return `<strong class="bid-visible-suit">${suit} ×${count}</strong>${level}`;}
+function suitName(s){return ({S:tr('黑桃','Spades'),H:tr('红桃','Hearts'),D:tr('方块','Diamonds'),C:tr('梅花','Clubs')})[s]||'';}
+function suitGlyph(s){const symbol=E.SYMBOL[s]||'';return `<span class="suit-glyph ${s==='H'||s==='D'?'suit-red':'suit-dark'}" title="${escape(suitName(s))}">${escape(symbol)}</span>`;}
+function coloredSuitInfo(s){return `${suitGlyph(s)}<span class="suit-readable-name">${escape(suitName(s))}</span>`;}
+function bidDescriptionHtml(b){if(!b)return escape(tr('待亮主','Awaiting bid'));const n=b.count||Math.max(1,Math.floor(b.strength/10));const level=friendsOn()&&b.level?` <span class="bid-level">(${tr('打','Level ')}${levelName(b.level)})</span>`:'';
+ if(b.suit==='N')return `<span class="bid-joker ${b.kind==='red-joker'?'red':''}">${b.kind==='red-joker'?tr('🟥 大王','Red Joker'):tr('⬛ 小王','Black Joker')}</span> ×${n} · ${tr('无主','No Trump')}${level}`;
+ return `${coloredSuitInfo(b.suit)} <b class="bid-count">×${n}</b>${level}`;
+}
+function coloredCardLabel(c){if(!c)return '';if(c.s==='J')return `<span class="colored-card-label ${c.r===17?'red':''}">${escape(E.label(c))}</span>`;return `<span class="colored-card-label ${c.s==='H'||c.s==='D'?'red':''}">${escape(E.label(c))}</span>`;}
+
+function bidSummaryHtml(b){if(!b)return tr('等待亮主','Awaiting bid');const count=b.count||b.ids?.length||1;const suit=b.suit==='N'?(b.kind==='red-joker'?tr('🟥 大王','Red Joker'):tr('⬛ 小王','Black Joker')):coloredSuitInfo(b.suit);const level=friendsOn()&&b.level?` · ${tr('打','Level ')}${levelName(b.level)}`:'';return `<strong class="bid-visible-suit">${suit} ×${count}</strong>${level}`;}
 function bidCardsHtml(bid){if(!bid?.ids?.length)return'';return `<span class="bid-card-strip">${bid.ids.map(id=>{const c=E.cardFromId(G,id);return c?cardHtml(c,true,false,'bid-card',''):''}).join('')}</span>`}
 function startTrickAnim(plays,winner,points){
  clearCollectVisuals();trickAnim={winner,points,trick:G.trickNo,startedAt:Date.now(),readMs:trickReadMs(),totalMs:trickTotalMs(),launched:false,flying:false};
@@ -630,7 +648,7 @@ function renderStats(){
  const dealer=bankerIsSet()?settings.names[G.dealerSeat]:tr('待亮主','Pending bid');
  const announced=G.declared;
  const bidText=announced?`${escape(settings.names[announced.seat])} · ${bidDescription(announced)}`:tr('等待亮主','Waiting for declaration');
- const trumpLabel=G.trump==='N'?tr('无主','NT'):G.trump?E.SYMBOL[G.trump]:tr('待定','Pending');
+ const trumpLabel=G.trump==='N'?tr('无主','NT'):G.trump?coloredSuitInfo(G.trump):tr('待定','Pending');
  const chips=shown.map(c=>`<b class="point-chip ${c.s==='H'||c.s==='D'?'red-point':'black-point'}">${escape(E.label(c))}</b>`).join('');
  $('statusBar').innerHTML=`<div class="stat stat-dealer"><div class="banker-line">♛ ${tr('庄家','DEALER')} <strong>${escape(dealer)}</strong><small>${tr('级','Level')} ${levelName(G.level)}</small></div><div class="bid-line"><span class="bid-label">${G.autoFallbackBid?tr('系统定主','Auto trump'):tr('亮主／反主','Bid / Counterbid')}：</span><b>${announced?escape(settings.names[announced.seat]):tr('等待亮主','Waiting for declaration')}</b> ${announced?bidSummaryHtml(announced):''}${G.trump?' · '+tr('主','Trump')+' '+(G.trump==='N'?tr('无主','NT'):suitGlyph(G.trump)):''}</div></div>`+
  `<div class="stat stat-captured"><span>${tr('闲家抓分','ATTACKERS')}</span><strong>${G.scores[attackers]} <small>/ ${threshold}</small></strong><span class="caught-cards" title="${escape(full||tr('暂时还没有抓到分牌','No scoring cards caught yet'))}">${chips||`<i>${tr('尚无分牌','No point cards')}</i>`}${points.length>shown.length?`<i>+${points.length-shown.length}</i>`:''}</span></div>`;
@@ -654,7 +672,7 @@ function findFriendCallMarkup(){
  const defaultCalls=F.chooseCalls(G);
  return `<div class="friend-call-grid">${Array.from({length:G.settings.friendCount},(_,i)=>{
   const call=defaultCalls[i]||{s:suits[i%suits.length],r:14,n:1};
-  return `<div class="friend-call-item"><strong>${tr('第','Friend ')} ${i+1} ${tr('位朋友','')}</strong><label>${tr('花色','Suit')} <select class="friend-call-select" id="callSuit${i}">${suits.map(s=>`<option value="${s}" ${s===call.s?'selected':''}>${E.SYMBOL[s]}</option>`).join('')}</select></label><label>${tr('牌点','Rank')} <select class="friend-call-select" id="callRank${i}">${Array.from({length:13},(_,x)=>x+2).filter(r=>r!==G.level&&![5,10,13].includes(r)).map(r=>`<option value="${r}" ${r===call.r?'selected':''}>${levelName(r)}</option>`).join('')}</select></label><label>${tr('第几张','Occurrence')} <select class="friend-call-select" id="callNth${i}">${Array.from({length:G.decks},(_,j)=>j+1).map(n=>`<option value="${n}" ${n===call.n?'selected':''}>${n}</option>`).join('')}</select></label></div>`;
+  return `<div class="friend-call-item"><strong>${tr('第','Friend ')} ${i+1} ${tr('位朋友','')}</strong><label>${tr('花色','Suit')} <select class="friend-call-select" id="callSuit${i}">${suits.map(s=>`<option value="${s}" ${s===call.s?'selected':''}>${E.SYMBOL[s]} ${escape(suitName(s))}</option>`).join('')}</select><span class="friend-suit-preview ${call.s==='H'||call.s==='D'?'red':'black'}" data-friend-suit-preview="${i}">${E.SYMBOL[call.s]}</span></label><label>${tr('牌点','Rank')} <select class="friend-call-select" id="callRank${i}">${Array.from({length:13},(_,x)=>x+2).filter(r=>r!==G.level&&![5,10,13].includes(r)).map(r=>`<option value="${r}" ${r===call.r?'selected':''}>${levelName(r)}</option>`).join('')}</select></label><label>${tr('第几张','Occurrence')} <select class="friend-call-select" id="callNth${i}">${Array.from({length:G.decks},(_,j)=>j+1).map(n=>`<option value="${n}" ${n===call.n?'selected':''}>${n}</option>`).join('')}</select></label></div>`;
  }).join('')}</div>`;
 }
 function callFriends(){
@@ -664,13 +682,29 @@ function callFriends(){
 }
 
 
+function renderBidDock(bids,dealing){
+ const dock=$('bidDock');if(!dock)return;
+ const active=view==='game'&&G&&['dealing','bid'].includes(G.phase);
+ dock.classList.toggle('hidden',!active);
+ if(!active){dock.replaceChildren();dock.dataset.renderKey='';return;}
+ window.__hhBids=bids;
+ const key=JSON.stringify([settings.language,G.phase,bids.map(b=>[b.ids,b.suit,b.count,b.level,b.kind])]);
+ if(dock.dataset.renderKey===key)return; // Keep touch targets stable while each card is dealt.
+ dock.dataset.renderKey=key;
+ dock.innerHTML=`<div class="bid-dock-heading"><strong>${tr('亮主 / 反主','Declare / Counterbid')}</strong><span>${tr('点击下面大按钮选择花色；红桃/方块用红色显示。','Tap a large suit button; hearts/diamonds are red.')}</span></div>`+
+  `<div class="bid-dock-actions">`+
+  (bids.length?bids.map((b,i)=>`<button type="button" class="bid-big-button" data-bid="${i}" aria-label="${escape(bidDescription(b))}">${bidDescriptionHtml(b)}<span class="bid-verb">${tr('亮主','Declare')}</span></button>`).join(''):`<span class="bid-no-option">${tr('目前没有可亮的级牌','No legal declaration yet')}</span>`)+
+  (!dealing?`<button type="button" class="bid-big-button bid-confirm" data-action="finishBid">${tr('确认主牌 · 扣底','Confirm Trump → Kitty')}</button>`:'')+'</div>';
+}
+
 function renderFriendsPhase(){
+ if(!['dealing','bid'].includes(G.phase))renderBidDock([],false);
  let title='',help='',buttons='';const dealer=G.dealerSeat===null?tr('待定','Pending'):playerTitle(G.dealerSeat);
  if(G.phase==='dealing'||G.phase==='bid'){
   const dealing=G.phase==='dealing',progress=G.totalToDeal?Math.round(100*G.dealCursor/G.totalToDeal):100;
   title=dealing?`${tr('发牌中','Dealing')} ${progress}%`:tr('最后反主 / 定主','Last counterbid / Confirm');
-  help=G.declared?`${tr('当前亮主','Current bid')}: ${escape(dealer)} ${bidDescription(G.declared)}`:tr('每人按自己的当前级数亮主或反主；最后叫主者坐庄。','Each player bids using their own level; last valid bidder is dealer.');
-  const bids=F.legalBids(G,0);window.__hhBids=bids;buttons=bids.slice(0,40).map((b,i)=>`<button class="ui-btn small ghost" data-bid="${i}">${bidDescription(b)}</button>`).join('')+(!dealing?`<button class="ui-btn primary small" data-action="finishBid">${tr('确认主牌 · 扣底','Confirm Trump → Kitty')}</button>`:'');
+  help=G.declared?`${tr('当前亮主','Current bid')}: ${escape(dealer)} ${bidDescriptionHtml(G.declared)}`:tr('每人按自己的当前级数亮主或反主；最后叫主者坐庄。','Each player bids using their own level; last valid bidder is dealer.');
+  const bids=F.legalBids(G,0).slice(0,40);renderBidDock(bids,dealing);buttons='';
  }else if(G.phase==='bury'){
   title=tr('庄家扣底','Bury kitty');help=G.dealerSeat===0?tr(`请选择 ${G.settings.kitty} 张底牌，保留拖拉机原有选牌操作。`,`Choose ${G.settings.kitty} cards; Tractor card controls apply.`):`${escape(dealer)} ${tr('正在扣底','is burying')}`;
   if(G.dealerSeat===0)buttons=`<button class="ui-btn small ghost" data-action="autoBury">${tr('智能选底','Suggest Kitty')}</button><button class="ui-btn primary small" data-action="bury">${tr('确认扣底 · 叫朋友','Bury → Call Friends')}</button>`;
@@ -683,23 +717,23 @@ function renderFriendsPhase(){
   const r=G.handResults;const champion=r.champion!==null&&r.champion!==undefined;title=champion?tr('比赛结束 · 打A坐庄守住！','Match won · Defended A as banker!'):tr('找朋友 · 本局结算','Find Friends · Hand Result');
   help=`${r.takeover?tr('闲家上台','Attackers take over'):tr('庄家守住','Dealer side defends')} · ${r.attackingScore}/${r.threshold} ${tr('分','pts')}`;
   const names=items=>items.map(i=>escape(playerTitle(i))).join('、');
-  buttons=`<div class="friends-finish"><p><strong>${tr('庄家阵营','Dealer side')}：</strong>${names(r.allies)} · <strong>${tr('闲家','Attackers')}：</strong>${names(r.attackers)}</p><p>${tr('本局升级','Upgraded')}: ${names(r.winningSeats)} +${r.gain}；${tr('个人级数','Levels')}: ${r.newLevels.map((lv,i)=>escape(playerTitle(i))+' '+levelName(lv)).join(' / ')}</p><p>${tr('朋友公开','Friend calls')}: ${r.calls.map(c=>E.SYMBOL[c.s]+levelName(c.r)+' #'+c.n+' → '+(c.revealed?escape(playerTitle(c.seat)):'—')).join('；')}</p></div><button class="ui-btn primary small" data-action="${champion?'restartMatch':'nextHand'}">${champion?tr('重新开始比赛','New Match'):tr('下一局（保留个人级数）','Next Deal (keep levels)')}</button>`;
+  buttons=`<div class="friends-finish"><p><strong>${tr('庄家阵营','Dealer side')}：</strong>${names(r.allies)} · <strong>${tr('闲家','Attackers')}：</strong>${names(r.attackers)}</p><p>${tr('本局升级','Upgraded')}: ${names(r.winningSeats)} +${r.gain}；${tr('个人级数','Levels')}: ${r.newLevels.map((lv,i)=>escape(playerTitle(i))+' '+levelName(lv)).join(' / ')}</p><p>${tr('朋友公开','Friend calls')}: ${r.calls.map(c=>coloredSuitInfo(c.s)+levelName(c.r)+' #'+c.n+' → '+(c.revealed?escape(playerTitle(c.seat)):'—')).join('；')}</p></div><button class="ui-btn primary small" data-action="${champion?'restartMatch':'nextHand'}">${champion?tr('重新开始比赛','New Match'):tr('下一局（保留个人级数）','Next Deal (keep levels)')}</button>`;
  }
  const el=$('phasePanel');el.classList.toggle('muted-phase',G.phase==='play');el.classList.toggle('hidden',G.phase==='play');el.classList.toggle('deal-phase',['dealing','bid'].includes(G.phase));el.classList.toggle('friend-call-phase',G.phase==='call');
  el.innerHTML=`<div class="phase-text"><strong>${title}</strong>${help?`<p>${help}</p>`:''}</div><div class="phase-buttons">${buttons}</div>${G.phase==='finished'?`<div class="kitty-finished"><strong>${tr('本局底牌揭晓','Kitty Reveal')}</strong>${kittyViewMarkup(true)}</div>`:''}`;
+ el.querySelectorAll('[id^=callSuit]').forEach(sel=>sel.addEventListener('change',()=>{const index=sel.id.slice('callSuit'.length);const preview=el.querySelector(`[data-friend-suit-preview="${index}"]`);if(preview){preview.textContent=E.SYMBOL[sel.value]||'';preview.className='friend-suit-preview '+(['H','D'].includes(sel.value)?'red':'black');}}));
 }
 
 function renderPhase(){
  if(friendsOn()){renderFriendsPhase();return;}
+ if(!['dealing','bid'].includes(G.phase))renderBidDock([],false);
  let title='',help='',buttons='';$('gamePhaseLabel').textContent='';
  if(G.phase==='dealing'||G.phase==='bid'){
   const dealing=G.phase==='dealing';
   const progress=G.totalToDeal?Math.round(100*G.dealCursor/G.totalToDeal):100;
   title=dealing?`${tr('发牌中','Dealing')} · ${progress}%`:tr('最后反主 / 定主','Final Counterbid / Confirm');
-  help=G.declared?`${tr('当前亮主','Current bid')}: ${escape(settings.names[G.declared.seat])} ${bidDescription(G.declared)}`:tr('各家可以随时亮级牌；机器人会自动判断是否亮主。','Anyone can declare trump; bots can bid during the deal.');
-  const bids=E.availableBids(G,0);window.__hhBids=bids;
-  buttons=bids.map((b,i)=>`<button class="ui-btn small ghost" data-bid="${i}">${bidDescription(b)} ${b.count===1?tr('亮主','Bid'):''}</button>`).join('')+
-   (!dealing?`<button class="ui-btn primary small" data-action="finishBid">${tr('确认主牌 · 扣底','Confirm Trump → Kitty')}</button>`:'');
+  help=G.declared?`${tr('当前亮主','Current bid')}: ${escape(settings.names[G.declared.seat])} ${bidDescriptionHtml(G.declared)}`:tr('各家可以随时亮级牌；机器人会自动判断是否亮主。','Anyone can declare trump; bots can bid during the deal.');
+  const bids=E.availableBids(G,0);renderBidDock(bids,dealing);buttons='';
  }else if(G.phase==='bury'){
   if(G.dealerSeat===0){title=tr('扣底牌','Bury the Kitty');help=tr(`新抓的底牌已用金色标出。请选择 ${E.kittySizes[G.decks]} 张牌重新扣底。`,`New kitty cards glow gold in your hand. Choose ${E.kittySizes[G.decks]} cards to bury.`);
     buttons=`<button class="ui-btn small ghost" data-action="autoBury">${tr('智能选底','Suggest Kitty')}</button><button class="ui-btn primary small" data-action="bury">${tr('确认扣底 · 开始','Bury & Start')}</button>`;
@@ -729,7 +763,7 @@ function renderActions(){let actions='';if(G.phase==='play')actions=`<button id=
  if(!messageText)messageText=G.phase==='play'?tr('点击卡牌选择，再点击出牌。电脑会在自己的回合自动出牌。','Select cards then click Play. AI opponents play automatically.'):'';
  $('actionMessage').textContent=messageText;$('actionMessage').className='action-message '+messageType;
  $('autoBtn').textContent=tr('AI 托管：','AI Takeover: ')+(settings.autoMrQ?tr('开','On'):tr('关','Off'));$('newHandBtn').textContent=tr('重新发牌','New Deal');}
-function renderHistory(){let moves=G.history.filter(x=>x.kind==='play'||x.kind==='trick-end');$('historyTitle').textContent=tr('出牌记录','Move History');$('replayBtn').textContent=tr('查看全部','View all');$('historyContent').innerHTML=moves.slice(-16).reverse().map(x=>x.kind==='trick-end'?`<div class="history-entry"><strong>${tr('第','Trick ')} ${x.trick} ${tr('墩：','· ')}${escape(settings.names[x.winner])}</strong> +${x.points}${tr('分','pts')}</div>`:`<div class="history-entry"><strong>${escape(settings.names[x.seat])}</strong> <span class="cards">${x.cards.map(id=>E.label(E.cardFromId(G,id))).join(' ')}</span></div>`).join('')||`<div class="history-entry">${tr('等待第一手牌','Waiting for first move')}</div>`;
+function renderHistory(){let moves=G.history.filter(x=>x.kind==='play'||x.kind==='trick-end');$('historyTitle').textContent=tr('出牌记录','Move History');$('replayBtn').textContent=tr('查看全部','View all');$('historyContent').innerHTML=moves.slice(-16).reverse().map(x=>x.kind==='trick-end'?`<div class="history-entry"><strong>${tr('第','Trick ')} ${x.trick} ${tr('墩：','· ')}${escape(settings.names[x.winner])}</strong> +${x.points}${tr('分','pts')}</div>`:`<div class="history-entry"><strong>${escape(settings.names[x.seat])}</strong> <span class="cards">${x.cards.map(id=>coloredCardLabel(E.cardFromId(G,id))).join(' ')}</span></div>`).join('')||`<div class="history-entry">${tr('等待第一手牌','Waiting for first move')}</div>`;
  let last=(G.decisions||[]).at(-1);$('strategyTitle').textContent=tr('策略提示 · AI','Strategy · AI');$('strategyText').textContent=last?`${settings.names[last.before.seat]} · ${last.strategy.reason}`:tr('AI 会考虑队友当前是否领先、牌型价值、已知绝门与抓分目标；困难模式加入未知牌采样，不会读取对手的真实手牌。','Bots consider partner control, card structure, voids and point targets. Stronger modes sample unknown cards instead of seeing opponents’ true hands.');}
 
 // ==================== SUDOKU 1.0: per-level sessions, fast-input table ====================
@@ -845,7 +879,7 @@ function openSettings(){const s=settings;
  ...(!fivePlayerMode()?[segment(tr('庄家归属','Dealer Rule'),'dealerMode',[['teamRotation',tr('首局亮主者；以后胜方轮庄','First bidder, then winning team rotates')],['bidder',tr('每局亮主者做庄','Bidder is dealer each hand')]],s.dealerMode||'teamRotation')]:[]),
  segment(tr('扣底计分','Kitty Scoring'),'kittyMultiplier',[['classic',tr('标准','Classic')],['exponential',tr('指数','Exponential')]],s.kittyMultiplier)
  ];
- modal((fivePlayerMode()?tr('找朋友','Find Friends'):tr('拖拉机','Tractor'))+' · '+tr('设置','Settings'),`${secs.join('')}<p class="setting-team-note">${fivePlayerMode()?tr('4–9人、2–4副牌、1–4位朋友；人数切换时自动带入对应默认值，之后仍可手工调整；底牌1–12张且必须使每人手牌一样多。最后有效叫主者坐庄。共用拖拉机牌桌，设置及存档独立。','4–9 players, 2–4 decks, 1–4 friend calls. Player count applies its default preset; afterward settings remain editable. Kitty 1–12 must allow equal hands. Last bidder is dealer; shared Tractor table, separate saves.'):tr('四人固定搭档；该玩法有独立设置与存档。','Four-player fixed teams; separate settings and save.')}</p><div class="setting-checks"><label><input id="sJMustDefend" type="checkbox" ${s.jMustDefend!==false?'checked':''}> ${tr('J 必打（必须坐庄守住才能过 J）；主J/副J抠底特殊降级','J is mandatory: defend J as banker to advance; special J kitty-capture demotions')}</label><label><input id="sBonus" type="checkbox" ${s.bonusOnTakeover?'checked':''}> ${tr('闲家上台立即升一级','+1 level on takeover')}</label><label><input id="sThrow" type="checkbox" ${s.allowThrows?'checked':''}> ${tr('实验性甩牌','Experimental throws')}</label>${!fivePlayerMode()?`<label><input id="sCounterDealer" type="checkbox" ${s.counterbidTakesDealer?'checked':''}> ${tr('反主同时抢庄家权','Counterbid can take dealer seat')}</label>`:''}<label><input id="sAuto" type="checkbox" ${s.autoMrQ?'checked':''}> ${tr('Mr. Q 交给电脑托管','AI plays Mr. Q')}</label></div>
+ modal((fivePlayerMode()?tr('找朋友','Find Friends'):tr('拖拉机','Tractor'))+' · '+tr('设置','Settings'),`${secs.join('')}<p class="setting-team-note">${fivePlayerMode()?tr('4–9人、2–4副牌、1–4位朋友；人数切换时自动带入对应默认值，之后仍可手工调整；底牌1–12张且必须使每人手牌一样多。最后有效叫主者坐庄。共用拖拉机牌桌，设置及存档独立。','4–9 players, 2–4 decks, 1–4 friend calls. Player count applies its default preset; afterward settings remain editable. Kitty 1–12 must allow equal hands. Last bidder is dealer; shared Tractor table, separate saves.'):tr('四人固定搭档；该玩法有独立设置与存档。','Four-player fixed teams; separate settings and save.')}</p><div class="setting-checks"><label><input id="sJMustDefend" type="checkbox" ${s.jMustDefend!==false?'checked':''}> ${tr('J/A 必打（A 始终要求坐庄守住；此选项控制 J 必打）；主J/副J抠底特殊降级','J/A mandatory (A is always required; this toggle controls J); special J kitty demotions')}</label><label><input id="sBonus" type="checkbox" ${s.bonusOnTakeover?'checked':''}> ${tr('上台就升级（闲家上台立即升一级）','Upgrade on takeover (+1 level)')}</label><label><input id="sThrow" type="checkbox" ${s.allowThrows?'checked':''}> ${tr('可以甩牌','Allow throws')}</label>${!fivePlayerMode()?`<label><input id="sCounterDealer" type="checkbox" ${s.counterbidTakesDealer?'checked':''}> ${tr('反主同时抢庄家权','Counterbid can take dealer seat')}</label>`:''}<label><input id="sAuto" type="checkbox" ${s.autoMrQ?'checked':''}> ${tr('Mr. Q 交给电脑托管','AI plays Mr. Q')}</label></div>
 
  <div class="form-actions"><button id="saveSettingsBtn" class="ui-btn primary">${tr('保存并返回','Save & Close')}</button><button id="resetMatchBtn" class="ui-btn ghost">${tr('重新开始比赛 · 重置所有级数','New Match · Reset All Levels')}</button></div>`);
  document.querySelectorAll('[data-setting] .set-choice').forEach(el=>el.onclick=()=>{el.parentElement.querySelectorAll('.set-choice').forEach(a=>a.classList.remove('active'));el.classList.add('active')});
@@ -909,7 +943,13 @@ function downloadFeedback(){let json=feedbackText(),blob=new Blob([json],{type:'
 async function copyText(s){try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(s);return true}}catch(e){}
  try{const el=document.createElement('textarea');el.value=s;el.style.position='fixed';el.style.opacity='0';document.body.append(el);el.select();const ok=document.execCommand('copy');el.remove();return !!ok}catch(e){return false}}
 function handleAction(action){switch(action){case'guandanOffline':location.href='guandan/index.html?mode=offline';break;case'guandanOnline':location.href='guandan/index.html?mode=online';break;case'tractor':case'tractorOffline':enterOffline('classic');break;case'friendsOffline':enterOffline('friends');break;case'tractorOnline':onlineInfo('classic');break;case'friendsOnline':onlineInfo('friends');break;case'sudoku':showSudoku();break;case'callFriends':callFriends();break;case'dealFaster':adjustDealing(1);break;case'dealSlower':adjustDealing(-1);break;case'finishBid':finalizeBid();break;case'autoBury':buryAuto();break;case'bury':burySelected();break;case'play':userPlay();break;case'hint':hint();break;case'showKitty':showKitty();break;case'clear':dismissHint();selected.clear();render();break;case'closeHint':dismissHint();break;case'feedback':openFeedback();break;case'nextHand':nextHand();break;case'restartMatch':if(confirm(friendsOn()?tr('重新开始并重置所有玩家的级数？','Start over and reset every player level?'):tr('开始新比赛并将两队等级归零？','Start new match and reset both teams?'))){createHand(true);showGame()}break;}}
-function setup(){ bootstrapSudoku();$('felt').appendChild($('phasePanel')); $('felt').appendChild(document.querySelector('.action-panel')); if(!['zh','en'].includes(settings.language))settings.language='zh';if(!G||!G.phase||!G.hands){G=null}else{if(!friendsOn()&&G.match)match=G.match;}
+function setup(){ bootstrapSudoku();$('felt').appendChild($('phasePanel')); $('felt').appendChild($('bidDock')); $('felt').appendChild(document.querySelector('.action-panel')); if(!['zh','en'].includes(settings.language))settings.language='zh';if(!G||!G.phase||!G.hands){G=null}else{if(!friendsOn()&&G.match)match=G.match;}
+ const bidDock=$('bidDock');let lastPointerBid=0;
+ if(bidDock){
+  // Process finger/mouse input before the animated deal can replace the target.
+  bidDock.addEventListener('pointerdown',e=>{if(e.button!==0||e.isPrimary===false)return;const button=e.target.closest('button[data-bid]');if(!button)return;const choice=window.__hhBids?.[Number(button.dataset.bid)];if(!choice)return;lastPointerBid=Date.now();e.preventDefault();e.stopPropagation();doBid(choice.ids);},{passive:false});
+  bidDock.addEventListener('click',e=>{if(e.target.closest('button[data-bid]')&&Date.now()-lastPointerBid<650){e.preventDefault();e.stopPropagation();}});
+ }
  $('brand').onclick=showHub;$('homeBtn').onclick=showHub;$('languageBtn').onclick=()=>{settings.language=settings.language==='zh'?'en':'zh';persistSettings();adjustButtons();renderHub();if(view==='game')render();if(view==='sudoku')renderSudoku();if(!$('dialogBackdrop').classList.contains('hidden'))closeModal()};
  $('settingsBtn').onclick=()=>view==='sudoku'?openSudokuSettings():openSettings();$('rulesBtn').onclick=openRules;$('feedbackBtn').onclick=()=>view==='sudoku'?openSudokuFeedback():openFeedback();$('closeDialogBtn').onclick=closeModal;
  $('newHandBtn').onclick=handleTopNew;$('lastTrickBtn').onclick=toggleLastTrick;$('reviewNextBtn').onclick=reviewNextTrick;$('reviewCurrentBtn').onclick=returnToCurrentTrick;$('autoBtn').onclick=toggleAuto;$('replayBtn').onclick=openHistory;$('replayTopBtn').onclick=openHistory;
@@ -927,5 +967,5 @@ window.addEventListener('error',e=>{console.error('HHgames error',e.error||e.mes
 window.HHAppDebug={enterOffline,persistSettings,openSettings,handleAction,showKitty,kittyViewMarkup,getSavedBugs:()=>savedBugs,saveCurrentBug,bugsBundle,openFeedback,completedTrickArchive,reviewPreviousTrick,reviewNextTrick,returnToCurrentTrick,getReviewTrickNo:()=>reviewTrickNo,finishDeal(){if(!G||G.phase!=='dealing')return;clearTimeout(timer);while(G.phase==='dealing'){const next=G.dealPile.shift();if(next){G.hands[next.seat].push(next.card);E.sort(G.hands[next.seat],G);G.dealCursor++;if(next.seat!==0)maybeBotBid(next.seat);}else{G.phase='bid';break;}if(!G.dealPile.length){G.phase='bid';for(let seat of Array.from({length:totalSeats()-1},(_,i)=>i+1))maybeBotBid(seat);}}saveGame();render();},toggleLastTrick,getGame:()=>G,getSettings:()=>settings,createHand,showGame,finalizeBid,autoBury(){if(G?.phase==='bury'&&G.dealerSeat===0){const cards=friendsOn()?F.chooseBury(G):E.chooseKitty(G,0);selected=new Set(cards.map(c=>c.id));burySelected();}},botMove(){if(!G||G.phase!=='play'||G.plays.length===totalSeats())return;const p=G.turn,v=friendsOn()?F.botMove(G,p):B.choose(G,p);playMove(p,v.cards,v)},export:()=>G&&(friendsOn()?F.snapshot(G):E.fullSnapshot(G,'')),getSudoku:()=>sudoku,getSudokuSaves:()=>sudokuSaves,beginSudoku,sudokuChooseLevel,sudokuValidate,sudokuHelp,sudokuCheckDone,sudokuReturnSelection,generateSudoku,sudokuCountSolutions};
 setup();
 // Installed/hosted versions may cache assets. The standalone HTML is fully offline.
-if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost'))navigator.serviceWorker.register('./sw.js?v=1.22.0').catch(()=>{});
 })();

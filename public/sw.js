@@ -1,8 +1,14 @@
 /* An optional static offline cache for users who install HHgames from HTTPS.
  * The game itself does not connect to this or any cloud service during play. */
-const CACHE_NAME='hhgames-v1.21.0-20261123';
-const ASSETS=['./','./index.html','./style.css','./js/engine.js','./js/bot.js','./js/friends.js','./js/app.js','./assets/hh.svg','./assets/icon-192.png','./assets/icon-512.png','./manifest.webmanifest','./hh-theme.css','./hh-tractor.css','./hh-v06.css','./hh-v07.css','./hh-v08.css','./hh-v10.css','./hh-v12.css','./hh-v13.css','./hh-v14.css','./hh-v17.css','./hh-v19.css','./hh-v112.css','./hh-v115.css','./hh-v116.css','./hh-v117.css','./hh-v118.css','./hh-v120.css','./assets/avatars/mr-q.webp','./assets/avatars/prof-wang.webp','./assets/avatars/hh-boy.webp','./assets/avatars/hh-girl.webp','./guandan/index.html','./guandan/sw.js','./guandan/manifest.webmanifest','./guandan/icon-192.png','./guandan/icon-512.png','./guandan/apple-touch-icon.png'];
+const CACHE_NAME='hhgames-v1.22.0-20261123';
+const ASSETS=['./','./index.html','./style.css','./js/engine.js','./js/bot.js','./js/friends.js','./js/app.js','./assets/hh.svg','./assets/icon-192.png','./assets/icon-512.png','./manifest.webmanifest','./hh-theme.css','./hh-tractor.css','./hh-v06.css','./hh-v07.css','./hh-v08.css','./hh-v10.css','./hh-v12.css','./hh-v13.css','./hh-v14.css','./hh-v17.css','./hh-v19.css','./hh-v112.css','./hh-v115.css','./hh-v116.css','./hh-v117.css','./hh-v118.css','./hh-v120.css','./hh-v122.css','./assets/avatars/mr-q.webp','./assets/avatars/prof-wang.webp','./assets/avatars/hh-boy.webp','./assets/avatars/hh-girl.webp','./guandan/index.html','./guandan/sw.js','./guandan/manifest.webmanifest','./guandan/icon-192.png','./guandan/icon-512.png','./guandan/apple-touch-icon.png'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('hhgames-')&&k!==CACHE_NAME).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
-self.addEventListener('fetch',event=>{const req=event.request;if(req.method!=='GET'||new URL(req.url).origin!==self.location.origin)return;
+self.addEventListener('fetch',event=>{const req=event.request,url=new URL(req.url);
+ if(req.method!=='GET'||url.origin!==self.location.origin||/^\/(?:relay$|room\/)/.test(url.pathname))return;
+ // Navigations use the latest deployed HTML when online; cached pages remain usable offline.
+ if(req.mode==='navigate'){
+  event.respondWith(fetch(req).then(res=>{if(res.ok){const copy=res.clone();caches.open(CACHE_NAME).then(c=>c.put(req,copy))}return res})
+   .catch(()=>caches.match(req,{ignoreSearch:true}).then(hit=>hit||caches.match('./index.html'))));return;
+ }
  event.respondWith(caches.match(req).then(hit=>hit||fetch(req).then(res=>{if(res.ok){const copy=res.clone();caches.open(CACHE_NAME).then(c=>c.put(req,copy))}return res}))) });
