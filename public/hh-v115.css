@@ -1,0 +1,107 @@
+/* V1.15: visual continuity with V1.13's round Tractor table.
+   No nine-box cards-and-player grid, and no additional page scrolling. */
+.dealing-speed-controls{display:flex;align-items:center;gap:5px;padding:3px 7px;border:1px solid #d8b66e;border-radius:10px;background:#fff4d6;white-space:nowrap}
+.dealing-speed-controls .ui-btn{font-size:12px!important;font-weight:850!important;padding:5px 8px!important;color:#25462e!important;background:#fff9e8!important;border:1px solid #a98946!important}
+#dealSpeedValue{min-width:32px;font-size:11px;font-weight:900;color:#60451b;text-align:center}
+.kitty-number-input{font-size:19px;font-weight:900;border:2px solid #bdaa86;border-radius:8px;padding:7px 9px;width:100px;color:#163c2f;background:#fffdf3}
+.kitty-validation{font-size:12px;margin-top:5px;color:#226b4a;line-height:1.5}
+.kitty-validation.invalid{color:#b42c3a;font-weight:750}
+.friend-call-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:2px 7px}
+.friend-call-progress{display:flex;align-items:center;gap:4px;color:#2d5741;font-size:10px;line-height:1.3;min-width:0}
+.friend-check{display:grid!important;place-items:center;flex:0 0 16px;width:16px;height:16px;border-radius:50%;background:#e0e6df;border:1px solid #abbcaf;font-size:11px;color:#416d54;font-weight:900}
+.friend-check.done{background:#238863;color:white;border-color:#23734c}
+.friend-call-progress strong{font-size:10px;margin-left:4px}
+/* Classic V1.13 main-column/sidebar shell stays unchanged. More people use
+   the SAME felt, with compact labels around the edge like real table seats. */
+body.playing .felt.friends-table{position:relative!important;grid-template-columns:18% minmax(0,1fr) 18%!important;grid-template-rows:19% minmax(0,1fr) 18%!important;min-height:0!important;height:100%!important;max-height:100%!important;overflow:hidden!important;padding:0!important;isolation:isolate}
+body.playing .friends-table>.seat{position:absolute!important;left:var(--seat-x)!important;top:var(--seat-y)!important;right:auto!important;bottom:auto!important;transform:translate(-50%,-50%)!important;z-index:8!important;width:clamp(82px,16%,148px)!important;min-width:0!important;max-width:none!important;display:block!important;text-align:center!important;grid-area:auto!important;grid-column:auto!important;grid-row:auto!important;align-self:auto!important;justify-self:auto!important}
+body.playing .friends-table>.seat .seat-info{max-width:100%;padding:3px 5px;gap:3px;background:#092a29dc}
+body.playing .friends-table>.seat .seat-words{min-width:0!important;width:100%;overflow:hidden}
+body.playing .friends-table>.seat .player-name{font-size:clamp(9px,.83vw,12px)!important;max-width:100%!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.playing .friends-table>.seat .avatar{width:clamp(16px,1.65vw,27px)!important;height:clamp(16px,1.65vw,27px)!important;flex:0 0 auto}
+body.playing .friends-table>.seat .seat-level-chip{font-size:9px!important}
+body.playing .friends-table>.seat .card-back-fan{height:17px;min-height:0;pointer-events:none}
+body.playing .friends-table>.seat .back-card{height:16px;width:11px;margin-left:-6px;border-width:1px}
+body.playing .friends-table>.seat .dealer-outside-badge{top:-13px!important;left:50%!important;right:auto!important;bottom:auto!important;transform:translateX(-50%)!important;font-size:clamp(8px,.74vw,12px)!important;padding:2px 6px!important;z-index:10;white-space:nowrap}
+body.playing .friends-table[data-players="7"]>.seat,body.playing .friends-table[data-players="8"]>.seat,body.playing .friends-table[data-players="9"]>.seat{width:clamp(70px,13.5%,116px)!important}
+body.playing .friends-table[data-players="7"]>.seat .card-back-fan,body.playing .friends-table[data-players="8"]>.seat .card-back-fan,body.playing .friends-table[data-players="9"]>.seat .card-back-fan{display:none!important}
+body.playing .friends-table>.table-center{position:absolute!important;inset:0!important;grid-column:auto!important;grid-row:auto!important;z-index:3!important;display:block!important;border:0!important;transform:none!important;width:100%!important;height:100%!important;pointer-events:none}
+body.playing .friends-table .center-title{position:absolute!important;top:49%!important;left:50%!important;transform:translate(-50%,-50%)!important;font-size:clamp(9px,1.05vw,13px)!important;z-index:4!important;max-width:45%;white-space:normal;text-align:center;padding:2px 7px;background:#0b4936c4;border:1px solid #89aa8245;border-radius:6px}
+body.playing .friends-table .trick-area{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:block!important;overflow:hidden!important;padding:0!important;pointer-events:none}
+body.playing .friends-table .trick-area>.perimeter-trick{position:absolute!important;left:var(--play-x)!important;top:var(--play-y)!important;transform:translate(-50%,-50%)!important;width:var(--play-width)!important;height:20%!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:stretch!important;margin:0!important;padding:0!important;overflow:visible!important;background:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;pointer-events:none}
+body.playing .friends-table .perimeter-trick .trick-who{display:block!important;height:13px!important;flex:0 0 13px!important;line-height:13px!important;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e7ffe4;font-size:clamp(8px,.75vw,11px)!important;text-align:center!important;text-shadow:0 1px 2px #051d19}
+body.playing .friends-table .perimeter-trick .trick-faces{position:relative!important;display:block!important;flex:1 1 auto!important;min-width:0!important;min-height:0!important;max-width:100%!important;width:100%!important;overflow:visible!important;padding:0!important;margin:0!important;background:none!important}
+body.playing .friends-table .perimeter-trick .trick-faces>.playing-card.mini{position:absolute!important;transform:none!important;display:block!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;flex:none!important;margin:0!important;padding:2px 1px!important;box-shadow:0 1px 3px #001b1c80;border-radius:3px!important;opacity:1!important;overflow:hidden!important}
+body.playing .friends-table .perimeter-trick .playing-card .card-index{top:1px!important;left:1px!important}
+body.playing .friends-table .perimeter-trick .playing-card .card-index strong{font-size:clamp(8px,1vw,13px)!important;line-height:1!important}
+body.playing .friends-table .perimeter-trick .playing-card .card-index em{font-size:clamp(7px,.9vw,12px)!important;line-height:1!important}
+body.playing .friends-table .perimeter-trick .playing-card .card-center{font-size:clamp(9px,1.1vw,15px)!important}
+body.playing .friends-table .perimeter-trick .trick-order{position:absolute!important;top:-5px!important;right:-3px!important;z-index:30!important;font-size:11px!important;background:#ffe2a8;color:#153c2d;border:1px solid #eec87a;border-radius:50%;height:19px;width:19px;display:grid;place-items:center}
+body.playing .friends-table .trick-area:not(.reviewing) .trick-order{display:none!important}
+body.playing .friends-table .trick-area>.no-trick{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:max-content;max-width:45%;text-align:center}
+body.playing .friends-table .instruction-panel.friend-call-phase{z-index:31!important;max-width:min(680px,94%)!important;background:#12392cef!important}
+body.playing .friends-table .friend-call-grid{display:grid;grid-template-columns:1fr;gap:4px;width:100%}
+body.playing .friends-table .friend-call-item{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px;padding:5px}
+body.playing .friends-table .friend-call-item strong{width:auto;margin-right:8px}
+/* Keep the original viewport-height game skeleton (no V1.14 taller-page mode).
+   Nine-player layout uses the available felt, not a taller panel. */
+body.playing:has(.friends-table) .game-layout{min-height:0!important;overflow:hidden!important}
+body.playing:has(.friends-table) .main-column{min-height:0!important;overflow:hidden!important}
+body.playing .felt.friends-table[data-players="8"] .center-title,body.playing .felt.friends-table[data-players="9"] .center-title{font-size:9px!important;max-width:30%!important}
+/* Sudoku: a full set of nine has been filled, on both keypads. Reversible. */
+body.sudoku-active .sudoku-keypad .sdk-digit-key.sdk-complete,
+body.sudoku-active .sudoku-keypad.fixed .sdk-digit-key.sdk-complete,
+body.sudoku-active .sudoku-keypad.note .sdk-digit-key.sdk-complete{background:#c8ccd2!important;color:#777e87!important;border-color:#b6bbc2!important;box-shadow:none!important;opacity:.63!important;filter:grayscale(1)!important;cursor:not-allowed!important;transform:none!important}
+body.sudoku-active .sudoku-keypad .sdk-digit-key.sdk-complete sup{background:#c2c6cb!important;color:#6b747e!important}
+@media(max-width:980px){
+ body.playing .friends-table>.seat{width:clamp(61px,16%,122px)!important}
+ body.playing .friends-table[data-players="7"]>.seat,body.playing .friends-table[data-players="8"]>.seat,body.playing .friends-table[data-players="9"]>.seat{width:clamp(57px,13.5%,94px)!important}
+ body.playing .friends-table>.seat .avatar{width:18px!important;height:18px!important}
+ body.playing .friends-table>.seat .card-back-fan{display:none!important}
+ body.playing .friends-table>.seat .seat-info{padding:2px 3px!important}
+ body.playing .friends-table>.seat .player-name{font-size:9px!important}
+ body.playing .friends-table>.seat .seat-level-chip{font-size:8px!important}
+ body.playing .friends-table .perimeter-trick .trick-who{font-size:9px!important}
+}
+@media(max-width:650px){
+ body.playing .felt.friends-table{min-height:0!important;height:100%!important;border-width:3px!important}
+ body.playing .friends-table>.seat{width:clamp(40px,18%,68px)!important}
+ body.playing .friends-table[data-players="7"]>.seat,body.playing .friends-table[data-players="8"]>.seat,body.playing .friends-table[data-players="9"]>.seat{width:clamp(38px,15%,55px)!important}
+ body.playing .friends-table>.seat .avatar{display:none!important}
+ body.playing .friends-table>.seat .seat-info{padding:1px!important}
+ body.playing .friends-table>.seat .player-name{font-size:8px!important}
+ body.playing .friends-table>.seat .seat-level-chip{font-size:8px!important}
+ body.playing .friends-table>.seat .dealer-outside-badge{font-size:8px!important;padding:1px 2px!important;top:-10px!important}
+ body.playing .friends-table .perimeter-trick .trick-who{font-size:8px!important;height:10px!important;flex-basis:10px!important;line-height:10px!important}
+ body.playing .friends-table .perimeter-trick .playing-card .card-index strong{font-size:9px!important}
+ body.playing .friends-table .perimeter-trick .playing-card .card-index em{font-size:8px!important}
+ body.playing .friends-table .perimeter-trick .playing-card .card-center{display:none!important}
+ .dealing-speed-controls{padding:1px 2px;gap:1px}
+ .dealing-speed-controls .ui-btn{font-size:9px!important;padding:4px 3px!important}
+ #dealSpeedValue{font-size:9px;min-width:20px}
+}
+/* Keep V1.13's action location but make it compact only for crowded tables;
+   otherwise a tall Play button would cover the bottom-right player's name. */
+body.playing .felt.friends-table[data-players="7"]>.action-panel .action-buttons .ui-btn,
+body.playing .felt.friends-table[data-players="8"]>.action-panel .action-buttons .ui-btn,
+body.playing .felt.friends-table[data-players="9"]>.action-panel .action-buttons .ui-btn{min-height:26px!important;font-size:10px!important;padding:3px 5px!important}
+body.playing .felt.friends-table[data-players="7"]>.action-panel .action-buttons .ui-btn.primary,
+body.playing .felt.friends-table[data-players="8"]>.action-panel .action-buttons .ui-btn.primary,
+body.playing .felt.friends-table[data-players="9"]>.action-panel .action-buttons .ui-btn.primary{min-height:30px!important;padding:3px 10px!important;font-size:14px!important}
+body.playing .felt.friends-table[data-players="8"] .center-title,
+body.playing .felt.friends-table[data-players="9"] .center-title{top:3%!important;right:6px!important;left:auto!important;transform:none!important;max-width:30%!important;white-space:nowrap;font-size:9px!important}
+@media(max-width:650px){
+ body.playing .felt.friends-table[data-players="7"]>.action-panel,
+ body.playing .felt.friends-table[data-players="8"]>.action-panel,
+ body.playing .felt.friends-table[data-players="9"]>.action-panel{right:3px!important;bottom:2px!important}
+ body.playing .felt.friends-table[data-players="7"]>.action-panel .action-buttons .ui-btn,
+ body.playing .felt.friends-table[data-players="8"]>.action-panel .action-buttons .ui-btn,
+ body.playing .felt.friends-table[data-players="9"]>.action-panel .action-buttons .ui-btn{min-height:21px!important;font-size:8px!important;padding:1px 3px!important}
+ body.playing .felt.friends-table[data-players="7"]>.action-panel .action-buttons .ui-btn.primary,
+ body.playing .felt.friends-table[data-players="8"]>.action-panel .action-buttons .ui-btn.primary,
+ body.playing .felt.friends-table[data-players="9"]>.action-panel .action-buttons .ui-btn.primary{min-height:25px!important;font-size:12px!important;padding:2px 8px!important}
+}
+body.playing .friends-table[data-players="7"] .player-name .edit-pencil,
+body.playing .friends-table[data-players="8"] .player-name .edit-pencil,
+body.playing .friends-table[data-players="9"] .player-name .edit-pencil{display:none!important}
+@media(max-width:650px){body.playing .friends-table .player-name .edit-pencil{display:none!important}}

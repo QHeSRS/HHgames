@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#0b1624"><meta name="description" content="HHgames 游戏大厅 - offline-first Chinese card games"><title>HHgames · 游戏大厅</title><link rel="icon" href="assets/hh.svg" type="image/svg+xml"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="assets/icon-192.png"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="hh-theme.css"><link rel="stylesheet" href="hh-tractor.css"><link rel="stylesheet" href="hh-v06.css"><link rel="stylesheet" href="hh-v07.css"><link rel="stylesheet" href="hh-v08.css"><link rel="stylesheet" href="hh-v10.css"><link rel="stylesheet" href="hh-v12.css"><link rel="stylesheet" href="hh-v13.css"><link rel="stylesheet" href="hh-v14.css"><link rel="stylesheet" href="hh-v17.css"><link rel="stylesheet" href="hh-v19.css"><link rel="stylesheet" href="hh-v112.css"><link rel="stylesheet" href="hh-v115.css"><link rel="stylesheet" href="hh-v116.css"><link rel="stylesheet" href="hh-v117.css"><link rel="stylesheet" href="hh-v118.css"><link rel="stylesheet" href="hh-v120.css"></head>
+<body>
+<div id="app" class="shell">
+  <header class="topbar">
+    <button id="brand" class="brand" type="button" aria-label="HHgames home">
+      <img class="logo" src="assets/hh.svg" alt="HH logo"><span class="brandwords"><strong>HHgames</strong><small id="brandSubtitle">游戏大厅 · Game Hub</small></span>
+    </button>
+    <div class="top-actions"><div class="dealing-speed-controls hidden" id="dealSpeedControls"><button type="button" class="ui-btn small" data-action="dealSlower">− 放慢</button><span id="dealSpeedValue">正常</span><button type="button" class="ui-btn small" data-action="dealFaster">加快 +</button></div>
+      <button id="languageBtn" class="ui-btn small ghost">English</button>
+      <button id="homeBtn" class="ui-btn small ghost">游戏大厅（返回）</button>
+      <button id="lastTrickBtn" class="ui-btn small ghost" disabled>上一轮</button><button id="reviewNextBtn" class="ui-btn small ghost hidden">下一轮 ▶</button><button id="reviewCurrentBtn" class="ui-btn small ghost hidden">返回本轮</button><button id="newHandBtn" class="ui-btn small ghost">重新发牌</button><button id="settingsBtn" class="ui-btn small ghost">设置</button>
+      <button id="rulesBtn" class="ui-btn small ghost">规则</button>
+      <button id="feedbackBtn" class="ui-btn small feedback-btn">反馈 / Bug</button>
+    </div>
+  </header>
+  <main>
+    <section id="hubView" class="view">
+      <div class="hero"><div><span class="eyebrow">YOUR PRIVATE TABLE · 你的专属游戏空间</span><h1 id="hubTitle">游戏大厅</h1><p id="hubIntro" class="subcopy">掼蛋、拖拉机和找朋友等游戏入口；不同玩法独立设置。</p></div><div class="hero-side"><div class="smallcap">AVAILABLE NOW</div><strong id="heroCount">04</strong><span id="heroAvailable">个可玩的游戏</span></div></div>
+      <div class="section-head"><h2 id="gameCollectionTitle">游戏库</h2><span id="gameCount">10 个游戏入口</span></div>
+      <div id="tiles" class="game-grid"></div><div id="hubBuildLine" class="hub-build-line"></div>
+      <div class="hub-note"><span class="dot"></span><span id="hubNote">HTML 可直接在 Safari 中打开；没有任何网络请求。联网游戏将使用独立的房间服务。</span></div>
+    </section>
+    <section id="gameView" class="view hidden">
+      <div class="game-heading"><div><span class="eyebrow" id="gameEyebrow">OFFLINE / SOLO</span><h1 id="gameTitle">拖拉机 <small>（单机）</small></h1><p id="gamePhaseLabel" class="subcopy">准备发牌</p></div><div class="game-heading-actions"><button id="replayTopBtn" class="ui-btn small ghost">记录</button></div></div>
+      <div class="game-layout">
+        <div class="main-column">
+          <div class="status-bar" id="statusBar"></div>
+          <section class="instruction-panel" id="phasePanel"></section>
+          <section class="felt" id="felt" aria-label="Tractor card table">
+             <div id="seat2" class="seat north"></div><div id="seat4" class="seat fifth hidden"></div><div id="seat5" class="seat extra hidden"></div><div id="seat6" class="seat extra hidden"></div><div id="seat7" class="seat extra hidden"></div><div id="seat8" class="seat extra hidden"></div>
+             <div id="seat3" class="seat west"></div>
+             <div id="trickCenter" class="table-center"><div class="center-title" id="centerTitle">第 1 墩</div><div id="trickArea" class="trick-area"></div></div>
+             <div id="seat1" class="seat east"></div>
+             <div id="seat0" class="seat south"></div>
+             <aside id="hintExplanation" class="hint-explanation hidden" role="status" aria-live="polite"></aside>
+          </section>
+          <div class="hand-panel"><div class="hand-heading"><h3 id="handTitle">我的手牌</h3><span id="selectionCount" class="muted">已选 0 张</span></div><div id="handGroups" class="hand-groups"></div></div>
+          <div class="action-panel"><div id="mainActions" class="action-buttons"></div><button id="autoBtn" class="ui-btn small ghost">AI 托管：关</button><p id="actionMessage" class="action-message">选择手牌后点击出牌。</p></div>
+        </div>
+        <aside class="sidebar"><section class="side-card"><div class="side-head"><h3 id="scoreTitle">本局得分</h3><span id="teamBadge">2v2</span></div><div id="scoreContent"></div></section><section class="side-card"><h3 id="strategyTitle">策略提示</h3><p id="strategyText">电脑使用队友配合、已出牌跟踪和未知牌采样来评估出牌。</p></section><section class="side-card"><div class="side-head"><h3 id="historyTitle">出牌记录</h3><button class="text-btn" id="replayBtn">查看全部</button></div><div id="historyContent" class="history-list"></div></section></aside>
+      </div>
+    </section>
+
+    <section id="sudokuView" class="view hidden">
+      <div class="game-heading sudoku-heading">
+        <div><span class="eyebrow">HHGAMES · OFFLINE</span><h1 id="sudokuTitle">Sudoku <small>（单机）</small></h1><p id="sudokuIntro" class="subcopy">选择难度 · 计时挑战</p></div>
+        <div class="game-heading-actions"><button id="sudokuRecordsBtn" class="ui-btn small ghost">排行榜 Top 20</button><button id="sudokuBackBtn" class="ui-btn small ghost hidden">难度选择</button></div>
+      </div>
+      <div id="sudokuLobby" class="sudoku-lobby"></div>
+      <div id="sudokuGame" class="sudoku-game hidden">
+        <div class="status-bar sudoku-stats" id="sudokuStats"></div>
+        <div class="sudoku-shell">
+          <aside class="sudoku-side sudoku-left"><span class="sudoku-side-title" id="sudokuFixedLabel">确定</span><div id="sudokuFixedKeys" class="sudoku-keypad fixed"></div></aside>
+          <section class="sudoku-center"><div id="sudokuBoard" class="sudoku-board" aria-label="Sudoku 9 by 9 board"></div>
+            <div class="sudoku-actions"><button id="sudokuEraseBtn" class="ui-btn small ghost">擦除</button><button id="sudokuValidateBtn" class="ui-btn small ghost">验证</button><button id="sudokuHintBtn" class="ui-btn small ghost">提示</button><button id="sudokuAnalyzeBtn" class="ui-btn small ghost">分析</button><button id="sudokuUndoBtn" class="ui-btn small ghost">撤销</button><button id="sudokuRestartBtn" class="ui-btn small ghost">重开本题</button><button id="sudokuFreshBtn" class="ui-btn small primary">同难度新题</button></div>
+            <p id="sudokuHintText" class="sudoku-hint">左：确定；右：待定。</p>
+          </section>
+          <aside class="sudoku-side sudoku-right"><span class="sudoku-side-title" id="sudokuNoteLabel">待定</span><div id="sudokuNoteKeys" class="sudoku-keypad note"></div></aside>
+        </div>
+        <section id="sudokuRecordCard" class="side-card sudoku-record-card hidden"><div class="side-head"><h3 id="sudokuRecordTitle">最快记录</h3><span id="sudokuRecordMeta">Top 20</span></div><div id="sudokuRecords" class="sudoku-records"></div></section>
+      </div>
+    </section>
+  </main>
+  <footer class="footer"><div><span class="footer-dot"></span><span id="offlineText">可离线使用 · 本地保存</span></div><span id="versionText">HHgames v1.21.0 · 2026-11-23 (UTC+8)</span></footer>
+</div>
+<div id="dialogBackdrop" class="dialog-backdrop hidden" role="presentation"><section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><div class="dialog-header"><div><span class="eyebrow">HHgames</span><h2 id="dialogTitle">设置</h2></div><button id="closeDialogBtn" class="ui-btn icononly" aria-label="Close">×</button></div><div id="dialogBody" class="dialog-body"></div></section></div>
+<div id="toast" class="toast hidden" role="status"></div>
+<script src="js/engine.js"></script><script src="js/bot.js"></script><script src="js/friends.js"></script><script src="js/app.js"></script>
+</body></html>

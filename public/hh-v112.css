@@ -1,0 +1,61 @@
+/* V1.12: One Tractor table for either four fixed partners or five Find Friends. */
+body.playing .felt.friends-table{position:relative;min-height:355px;grid-template-columns:18% 1fr 18%;grid-template-rows:19% 1fr 18%;overflow:hidden}
+body.playing .friends-table>.seat{position:absolute!important;z-index:8;width:min(23%,133px);max-width:none;min-width:0;transform:none;align-self:auto;justify-self:auto}
+body.playing .friends-table>#seat0{left:50%;bottom:1%;transform:translateX(-50%)}
+body.playing .friends-table>#seat1{right:2%;top:55%;transform:translateY(-50%)}
+body.playing .friends-table>#seat2{right:17%;top:1%}
+body.playing .friends-table>#seat3{left:17%;top:1%}
+body.playing .friends-table>#seat4{left:2%;top:55%;transform:translateY(-50%)}
+body.playing .friends-table .seat-info{min-width:0;max-width:100%}
+body.playing .friends-table .seat-words{min-width:0}
+body.playing .friends-table .seat-words small{justify-content:center}
+body.playing .friends-table .fifth-avatar{font-size:12px;font-weight:900;color:#ffe3aa}
+body.playing .friends-table .avatar.team-unknown{background:linear-gradient(135deg,#46615b,#c8ac77);color:#fff}
+body.playing .friends-table .friend-revealed{color:#a5f0cc;font-weight:850;font-size:10px}
+body.playing .friends-table>.table-center{position:relative;grid-column:2;grid-row:2;z-index:2}
+body.playing .friends-table .trick-area{grid-template-columns:1fr 1fr 1fr;grid-template-rows:36% 28% 36%;gap:0}
+body.playing .friends-table .trick-seat-3{grid-column:1;grid-row:1}
+body.playing .friends-table .trick-seat-2{grid-column:3;grid-row:1}
+body.playing .friends-table .trick-seat-4{grid-column:1;grid-row:3}
+body.playing .friends-table .trick-seat-1{grid-column:3;grid-row:3}
+body.playing .friends-table .trick-seat-0{grid-column:2;grid-row:3}
+body.playing .friends-table .trick-who{font-size:9px}
+body.playing .friends-table .trick-faces .playing-card.mini{width:29px;min-width:29px;flex-basis:29px;height:42px;margin-left:-12px}
+body.playing .friends-table .trick-faces{min-height:38px}
+body.playing .friends-table .dealer-outside-badge{top:-16px;left:50%;right:auto;bottom:auto;transform:translateX(-50%)}
+body.playing .instruction-panel.friend-call-phase{display:flex!important;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-height:95%;width:min(660px,96%);overflow:auto;background:#133d31f7;padding:12px;z-index:40;flex-wrap:wrap}
+body.playing .instruction-panel.friend-call-phase .phase-text{width:100%;max-width:none;flex-basis:100%}
+body.playing .instruction-panel.friend-call-phase .phase-buttons{display:flex;gap:9px;align-items:end;justify-content:center;width:100%}
+.friend-call-grid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.friend-call-item{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:#194c38;border:1px solid #5a9473;border-radius:9px;padding:8px;color:#f4e6c5;font-size:12px}
+.friend-call-item strong{width:100%;font-size:12px}
+.friend-call-item label{display:flex;gap:5px;align-items:center;white-space:nowrap}
+.friend-call-select{background:#fbf3df;border-radius:5px;border:1px solid #c59e5c;padding:5px;font-weight:750;color:#183e2e;min-width:44px}
+.friends-stat{min-width:0}.friends-stat small{color:#f3e6c1;word-break:break-word;font-size:10px}
+.friends-finish{max-width:600px;font-size:12px;line-height:1.5;color:#203d30}.friends-finish p{margin:5px 0}
+@media(max-width:650px){
+ body.playing .felt.friends-table{min-height:210px;grid-template-columns:21% 1fr 21%;grid-template-rows:21% 1fr 18%}
+ body.playing .friends-table>.seat{width:24%}
+ body.playing .friends-table>#seat2{right:16%;top:1%}
+ body.playing .friends-table>#seat3{left:16%;top:1%}
+ body.playing .friends-table>#seat4{left:0;top:50%}
+ body.playing .friends-table>#seat1{right:0;top:50%}
+ body.playing .friends-table>#seat0{bottom:0}
+ body.playing .friends-table .seat .avatar{width:18px;height:18px}
+ body.playing .friends-table .seat .seat-info{padding:0}
+ body.playing .friends-table .dealer-outside-badge{font-size:9px;top:-11px!important;left:50%!important;transform:translateX(-50%)!important}
+ body.playing .friends-table .trick-faces .playing-card.mini{width:22px;min-width:22px;flex-basis:22px;height:35px;margin-left:-10px}
+ body.playing .friends-table .trick-who{font-size:7px}
+ body.playing .friends-table .trick-faces{min-height:30px;padding:1px}
+ body.playing .friends-table .seat-words .seat-level-chip{font-size:8px}
+ body.playing .instruction-panel.friend-call-phase{padding:7px;gap:4px}
+ .friend-call-grid{gap:3px}
+ .friend-call-item{gap:4px;padding:5px;font-size:10px}
+ .friend-call-item strong{font-size:10px}
+ .friend-call-select{padding:3px;min-width:30px;font-size:10px}
+}
+
+/* V1.13: Online lobby entries stay visible but clearly identified as previews. */
+.game-tile.tile-simple.online-preview{opacity:.75;border-style:dashed;cursor:pointer}
+.game-tile.tile-simple.online-preview:hover,.game-tile.tile-simple.online-preview:focus-visible{opacity:1}
+.game-tile.tile-simple.online-preview .simple-tile-mode{color:#e9c68d}

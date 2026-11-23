@@ -1,0 +1,111 @@
+/* HHgames 1.0.0 — rapid Sudoku table + minimal artistic difficulty chooser */
+body.sudoku-active .sudoku-heading{min-height:33px;margin:0 0 2px}
+body.sudoku-active #sudokuView{overflow:hidden}
+body.sudoku-active .sudoku-lobby{max-height:calc(100dvh - 122px);padding:0;overflow:hidden}
+body.sudoku-active .sudoku-game{gap:2px}
+body.sudoku-active .sudoku-stats{min-height:31px;gap:24px;padding:4px 0;align-items:center}
+body.sudoku-active .sdk-stat{display:flex;align-items:baseline;gap:7px;font-size:12px;color:#bedbcf;white-space:nowrap}
+body.sudoku-active .sdk-stat strong{font-size:17px;letter-spacing:.1px;color:#f2fff8;font-variant-numeric:tabular-nums}
+body.sudoku-active .sdk-unranked{font-size:11px;color:#a76b21;background:#fff1d6;padding:4px 9px;border-radius:20px}
+body.sudoku-active .sudoku-shell{
+ --sudoku-board-size:min(calc(100dvh - 230px),calc(100vw - 375px),770px);
+ display:grid;grid-template-columns:clamp(62px,7vw,92px) var(--sudoku-board-size) clamp(132px,18vw,240px);
+ gap:11px;align-items:start;justify-content:center;
+}
+body.sudoku-active .sudoku-board{width:var(--sudoku-board-size);height:var(--sudoku-board-size);border-radius:2px;overflow:hidden;background:#fff;touch-action:manipulation}
+body.sudoku-active .sudoku-center{width:var(--sudoku-board-size);align-items:stretch;gap:5px}
+body.sudoku-active .sudoku-side{gap:4px;min-width:0}
+body.sudoku-active .sudoku-side-title{font-size:12px;line-height:15px;color:#527084;text-align:center;white-space:nowrap}
+body.sudoku-active .sudoku-keypad{height:var(--sudoku-board-size);display:grid;align-content:stretch;gap:5px}
+body.sudoku-active .sudoku-keypad.fixed{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(9,minmax(0,1fr));}
+body.sudoku-active .sudoku-keypad.note{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(5,minmax(0,1fr));grid-auto-flow:column}
+body.sudoku-active .sudoku-keypad .sdk-digit-key{position:relative;min-width:0;min-height:0;width:100%;height:100%;border-radius:12px;border:1px solid #c9d6df;background:linear-gradient(145deg,#fff,#edf4f8);color:#162f47;box-shadow:0 2px 5px #0c29400d;display:flex;align-items:center;justify-content:center;font-size:clamp(21px,2.5vw,40px);font-weight:850;line-height:1;touch-action:manipulation;padding:0}
+body.sudoku-active .sudoku-keypad .sdk-digit-key:hover{background:#e5f2fc;border-color:#9bc6e5}
+body.sudoku-active .sudoku-keypad .sdk-digit-key:active{transform:scale(.95);background:#bee5ff}
+body.sudoku-active .sudoku-keypad.fixed .sdk-digit-key{background:linear-gradient(155deg,#e8f4ef,#c9e2d6);border-color:#9dbcb0}
+body.sudoku-active .sudoku-keypad.fixed .sdk-digit-key:active{background:#90c7ab}
+body.sudoku-active .sudoku-keypad .sdk-digit-key sup{position:absolute;top:5px;right:7px;line-height:1;font-size:clamp(9px,.9vw,14px);font-weight:700;color:#638093;font-variant-numeric:tabular-nums}
+body.sudoku-active .sudoku-keypad .sdk-digit-key sup:not(:empty){background:#e7eff5;border-radius:5px;padding:2px 3px}
+body.sudoku-active .sudoku-keypad .sdk-key-erase{font-size:clamp(22px,2.7vw,35px);background:linear-gradient(150deg,#f7e9e7,#f3d7d2);color:#a1463e}
+body.sudoku-active .sudoku-cell{transition:background .09s ease;touch-action:manipulation}
+body.sudoku-active .sudoku-cell.sdk-peer{background:#f4f7fa}
+body.sudoku-active .sudoku-cell.sdk-excluded{background:#fff0b4!important}
+body.sudoku-active .sudoku-cell.sdk-same{background:#b2e3ff!important}
+body.sudoku-active .sudoku-cell.selected{background:#80c8f3!important;box-shadow:inset 0 0 0 2px #1378b5;z-index:2}
+body.sudoku-active .sudoku-cell.sdk-target{outline:3px solid #e6a136;outline-offset:-4px;z-index:3}
+body.sudoku-active .sudoku-cell.sdk-invalid{background:#ffbfb9!important;box-shadow:inset 0 0 0 2px #d75b56}
+body.sudoku-active .sudoku-cell .main-digit{font-size:clamp(18px,calc(var(--sudoku-board-size) / 15.7),44px)}
+body.sudoku-active .sudoku-cell.user .main-digit{color:#12669d}
+body.sudoku-active .sudoku-cell.given .main-digit{color:#18222b}
+body.sudoku-active .sudoku-cell .notes{inset:2px;font-size:clamp(8px,calc(var(--sudoku-board-size) / 47),15px)}
+body.sudoku-active .sudoku-actions{display:flex;justify-content:space-between;flex-wrap:nowrap;gap:5px;margin:0;padding:0}
+body.sudoku-active .sudoku-actions .ui-btn{font-size:clamp(10px,.9vw,13px);padding:7px 9px;border-radius:8px;min-width:0;white-space:nowrap;flex:1;line-height:1.1}
+body.sudoku-active #sudokuHintText.sudoku-hint{display:block;text-align:center;margin:0;max-width:100%;font-size:11px;line-height:1.2;color:#596f81;min-height:15px;max-height:29px;overflow:hidden}
+body.sudoku-active #sudokuRecordCard{display:none!important}
+/* Four elegant, large entry choices; leaderboard lives in a separate minimal button. */
+body.sudoku-active .sudoku-lobby{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;height:calc(100dvh - 130px);width:100%;background:radial-gradient(circle at 70% 15%,#eaf3f4 0%,transparent 42%);}
+.sdk-selection-head{text-align:center;display:flex;flex-direction:column;gap:5px}
+.sdk-selection-head>span{letter-spacing:4px;color:#a47d3c;font-size:11px;font-weight:800}
+.sdk-selection-head strong{font-size:clamp(23px,3vw,40px);letter-spacing:-.5px;color:#18364e}
+.sdk-selection-head p{margin:0;color:#798998;font-size:13px}
+.sdk-level-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;width:min(1160px,100%)}
+.sdk-level-card{isolation:isolate;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;min-height:clamp(165px,23dvh,255px);border:1px solid #d7e2e6;border-radius:17px;padding:19px;background:linear-gradient(140deg,#ecf5f1,#c8e0d7);color:#193c45;text-align:left;box-shadow:0 8px 28px #1834490c;transition:transform .12s,box-shadow .12s;}
+.sdk-level-card:before{content:'';position:absolute;right:-36px;top:-38px;width:154px;height:154px;border:25px solid #ffffff49;border-radius:40px;transform:rotate(23deg);pointer-events:none;z-index:-1}
+.sdk-level-card:hover{transform:translateY(-3px);box-shadow:0 12px 30px #193b5130}
+.sdk-level-card.sdk-level-1{background:linear-gradient(145deg,#e1eaf4,#c1d7eb);color:#264660}
+.sdk-level-card.sdk-level-2{background:linear-gradient(145deg,#f4ead7,#e7cda6);color:#624932}
+.sdk-level-card.sdk-level-3{background:linear-gradient(145deg,#ecdae1,#d4b4c4);color:#5e334a}
+.sdk-level-index{letter-spacing:3px;font-weight:750;opacity:.55;font-size:12px}
+.sdk-level-card strong{font-size:clamp(23px,2.6vw,34px);letter-spacing:-.8px}
+.sdk-level-sub{font-size:13px;opacity:.72}
+.sdk-level-best{font-size:12px;font-variant-numeric:tabular-nums;opacity:.78}
+.sdk-level-resume{position:absolute;top:15px;right:10px;background:#fff9;padding:5px 7px;border-radius:20px;font-size:10px;font-weight:750;color:#336459}
+.sdk-history-btn{background:transparent;color:#27475c;border:0;border-bottom:1px solid #9cb1c0;padding:8px 15px;font-size:14px;font-weight:650;display:flex;gap:14px;align-items:center}
+.sdk-history-btn:hover{color:#116999;border-color:#116999}
+@media(max-width:900px){
+ body.sudoku-active .sudoku-shell{--sudoku-board-size:min(calc(100dvh - 220px),calc(100vw - 260px),650px);grid-template-columns:60px var(--sudoku-board-size) 150px;gap:8px}
+ body.sudoku-active .sudoku-keypad{gap:4px}
+ body.sudoku-active .sudoku-keypad .sdk-digit-key{font-size:clamp(20px,3.5vw,34px)}
+ .sdk-level-grid{grid-template-columns:repeat(2,minmax(0,1fr));max-width:670px;gap:9px}
+ .sdk-level-card{min-height:clamp(125px,17dvh,205px);padding:13px}
+ .sdk-selection-head strong{font-size:clamp(20px,3vw,28px)}
+}
+@media(max-width:700px){
+ body.sudoku-active .sudoku-shell{--sudoku-board-size:min(calc(100dvh - 185px),calc(100vw - 143px));grid-template-columns:39px var(--sudoku-board-size) 88px;gap:5px}
+ body.sudoku-active .sudoku-stats{min-height:25px;gap:9px;padding:3px 0}
+ body.sudoku-active .sdk-stat{font-size:10px;gap:2px}
+ body.sudoku-active .sdk-stat strong{font-size:12px}
+ body.sudoku-active .sdk-unranked{font-size:9px;padding:3px 5px}
+ body.sudoku-active .sudoku-side-title{font-size:9px;line-height:12px;white-space:normal;height:22px}
+ body.sudoku-active .sudoku-keypad .sdk-digit-key{font-size:17px;border-radius:7px}
+ body.sudoku-active .sudoku-keypad .sdk-digit-key sup{top:3px;right:3px;font-size:9px;background:transparent!important;padding:0!important}
+ body.sudoku-active .sudoku-keypad{gap:2px}
+ body.sudoku-active .sudoku-actions .ui-btn{font-size:9px;padding:5px 3px;min-height:26px}
+ body.sudoku-active #sudokuHintText.sudoku-hint{font-size:9px;max-height:25px}
+ body.sudoku-active .sudoku-lobby{height:calc(100dvh - 105px);gap:12px}
+ .sdk-level-grid{grid-template-columns:repeat(2,minmax(0,1fr));max-width:500px;gap:9px}
+ .sdk-level-card{min-height:clamp(100px,16dvh,170px);padding:11px}
+ .sdk-level-card strong{font-size:clamp(17px,5vw,25px)}
+ .sdk-level-sub{font-size:11px}.sdk-level-index,.sdk-level-best{font-size:10px}
+ .sdk-selection-head p{font-size:11px}
+ .sdk-history-btn{font-size:11px}
+}
+@media(max-height:520px){
+ body.sudoku-active .sudoku-shell{--sudoku-board-size:min(calc(100dvh - 190px),calc(100vw - 270px));}
+ body.sudoku-active .sudoku-heading{min-height:23px}
+ body.sudoku-active .sudoku-heading h1{font-size:18px}
+ body.sudoku-active .sudoku-actions .ui-btn{padding:4px 6px}
+ body.sudoku-active #sudokuHintText.sudoku-hint{max-height:15px;white-space:nowrap;text-overflow:ellipsis}
+ body.sudoku-active .sudoku-lobby{gap:8px}
+ .sdk-level-card{min-height:115px;padding:10px}
+ .sdk-selection-head strong{font-size:20px}
+}
+@media(max-width:700px) and (max-height:520px){
+ body.sudoku-active .sudoku-shell{--sudoku-board-size:min(calc(100dvh - 185px),calc(100vw - 143px));}
+}
+
+/* Ensure all controls remain visible within one screen, even under browser chrome. */
+body.sudoku-active #sudokuView{padding-bottom:2px}
+body.sudoku-active .sudoku-stats{color:#d8ece2}
+body.sudoku-active .sudoku-side-title{color:#b7d0c6}
+body.sudoku-active .sudoku-hint{color:#c0d7cb!important}

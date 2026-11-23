@@ -1,0 +1,157 @@
+/* HHgames v0.5 · Tractor aligned to the Guandan reference UI */
+body.playing .topbar {background:#0b2b24;box-shadow:0 2px 9px #04181080;}
+body.playing .brandwords small{color:#c4d8c6}
+body.playing .top-actions{gap:5px;align-items:center}
+body.playing .game-heading{display:none!important}
+body.playing .main-column{grid-template-rows:34px minmax(128px,1fr) minmax(166px,35%) 42px;gap:5px}
+body.playing .status-bar{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+body.playing .stat{background:#0c372b;border:1px solid #3f6b55;border-radius:9px;padding:2px 12px}
+body.playing .stat span{font-size:11px;color:#b8ccbc}
+body.playing .stat strong{font-size:15px;color:#f1d68f}
+body.playing #lastTrickBtn.reviewing{background:#be9654!important;color:#122a21!important}
+body.playing .felt{border:5px solid #81592e;border-radius:28px;background:radial-gradient(ellipse at 50% 45%,#206f52,#0f583e 67%,#0c3e30);box-shadow:inset 0 0 0 2px #d8c18b36,inset 0 0 30px #031c13,0 5px 15px #0004}
+body.playing .felt::before{border-color:#d9cb9145;border-radius:50%}
+body.playing .table-center{position:relative;overflow:visible!important;display:block;z-index:1;min-height:0;width:100%;height:100%}
+body.playing #trickCenter .center-title{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);white-space:nowrap;z-index:1;font-size:11px;opacity:.94;padding:4px 9px;max-width:90%;overflow:hidden;text-overflow:ellipsis}
+body.playing .trick-area{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-rows:35% 30% 35%;width:100%;height:100%;gap:0;overflow:visible;align-items:center;justify-items:center}
+body.playing .trick-seat{display:flex;flex-direction:column;align-items:center;justify-content:center;max-width:100%;min-width:0;padding:2px;z-index:2;background:#123e318f;border-radius:9px;box-shadow:0 2px 8px #00281860}
+body.playing .trick-seat-2{grid-column:2;grid-row:1}
+body.playing .trick-seat-0{grid-column:2;grid-row:3}
+body.playing .trick-seat-3{grid-column:1;grid-row:2}
+body.playing .trick-seat-1{grid-column:3;grid-row:2}
+body.playing .trick-who{font-size:10px;color:#f8e5b4;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;max-width:100%;font-weight:700;margin-bottom:2px}
+body.playing .trick-faces{display:flex;align-items:start;justify-content:center;padding:1px 7px 3px 3px;max-width:100%;overflow:hidden;min-height:50px}
+body.playing .trick-faces .playing-card.mini{flex:0 0 40px;width:40px;min-width:40px;height:57px;margin-left:-10px;border:1px solid #b8babc;border-radius:4px;background:#fff;opacity:1}
+body.playing .trick-faces .playing-card.mini:first-child{margin-left:0}
+body.playing .trick-faces .playing-card.mini .card-index strong{font-size:14px}
+body.playing .trick-faces .playing-card.mini .card-index em{font-size:13px}
+body.playing .trick-faces .playing-card.mini .card-center{font-size:16px}
+body.playing .no-trick{grid-column:1/4;grid-row:2;text-align:center;color:#d9d1aa;font-size:13px}
+body.playing .seat-words{min-width:0}
+body.playing .player-name{display:block;border:0;color:#fff8e6;font:inherit;font-size:inherit;font-weight:800;text-align:left;padding:0;margin:0;line-height:1.3;background:transparent;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+body.playing .player-name:hover{color:#f7d286;text-decoration:underline}
+body.playing .hand-panel{background:#0a3529;border:1px solid #44775e;box-shadow:none;border-radius:10px;padding:7px 9px 5px}
+body.playing .hand-band{border:0;background:#123f30;border-radius:8px;padding:3px 4px;align-items:center;gap:7px}
+body.playing .hand-band.red-band{background:#123c31}
+body.playing .hand-segment{background:transparent;border-right:1px solid #8ab28c4d;gap:0;align-items:center}
+body.playing .hand-segment:last-child{border-right:0}
+body.playing .hand-segment .segment-tag{font-size:16px;color:#ddeedc}
+body.playing .hand-segment.red-segment .segment-tag{color:#ffb29b}
+body.playing .hand-segment.trump-segment .segment-tag{color:#f7d590}
+body.playing .hand-heading h3{font-size:12px}
+body.playing .sort-chip{border-radius:8px;border:1px solid #e7c178;background:#a37a42;color:white;font-size:12px;padding:5px 12px}
+body.playing .playing-card.red{color:#c72129}
+body.playing .playing-card.black{color:#1b2b3c}
+body.playing .playing-card.trump{border-bottom:3px solid #d59c3d}
+body.playing .action-panel{grid-row:4;display:flex;align-items:center;gap:7px;padding:1px 6px;background:#082d22;min-height:0}
+body.playing .action-buttons{gap:7px;display:flex;align-items:center}
+body.playing .action-buttons .ui-btn.primary{font-size:15px;padding:8px 24px}
+body.playing .action-message{flex:1;min-width:0;font-size:11px}
+body.playing #autoBtn{margin-left:auto;flex:none;white-space:nowrap}
+body.playing .instruction-panel{top:calc(34px + 5px);background:#103b31ed;border:1px solid #b7a575;box-shadow:0 3px 11px #001e1590;min-width:0;max-width:96%;padding:7px 13px}
+body.playing .instruction-panel.muted-phase{top:calc(34px + 10px);left:12px;transform:none;padding:5px 9px;background:#113e32c4;border:1px solid #4c8665}
+body.playing .instruction-panel.deal-phase{max-width:min(98%,980px);min-width:min(400px,90%);display:flex;gap:6px}
+body.playing .instruction-panel.deal-phase .phase-text{min-width:140px;max-width:250px}
+body.playing .instruction-panel.deal-phase .phase-buttons{display:flex;flex-wrap:wrap;justify-content:center}
+body.playing .phase-text strong{font-size:13px}
+body.playing .phase-text p{color:#dbdfbe;font-size:11px}
+/* Guandan-style settings: segmented selections and click-to-rename chips */
+.dialog{max-width:min(610px,96vw);border:2px solid #b48a52;background:#f1f1e9;box-shadow:0 24px 80px #0008}
+.dialog .dialog-header{border-bottom:1px solid #d3c8ad}
+.dialog .dialog-body{padding:13px 17px 20px;max-height:70dvh}
+.setting-block{padding:7px 0 5px;border-bottom:1px solid #dedbcf}
+.setting-label{font-size:13px;color:#2a392f;font-weight:750;margin-bottom:7px}
+.setting-seg{display:flex;flex-wrap:wrap;gap:6px}
+.dialog .set-choice{background:#ffffff;border:1px solid #bfc8bd;border-radius:9px;padding:9px 13px;color:#1b3229;font-weight:700;font-size:13px;cursor:pointer;min-width:56px}
+.dialog .set-choice.active{background:#1b6446;border-color:#0b4932;color:#fff;box-shadow:0 2px 5px #16422e44}
+.setting-checks{display:grid;gap:8px;margin:12px 0}
+.setting-checks label{font-size:13px;color:#284032;display:flex;gap:10px;align-items:center}
+.setting-checks input{accent-color:#176b4a}
+.rename-chips{display:flex;flex-wrap:wrap;gap:7px;margin:7px 0}
+.dialog .rename-chip{border:1px solid #a9beaf;border-radius:18px;background:#fff;color:#17412d;font-size:13px;font-weight:700;padding:8px 13px;cursor:pointer}
+.dialog .rename-chip:hover{background:#e8f2e7}
+.setting-team-note{color:#586d62;font-size:12px;margin:9px 0}
+.rename-target{font-weight:700;color:#365c45}
+.dialog .rename-input{width:100%;background:#fff;border:1px solid #aac6b6;border-radius:10px;padding:14px;font-size:18px;color:#17372c}
+.dialog .form-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:13px}
+/* Layout constrained to viewport; popups may scroll within their panel only */
+html,body{overflow:hidden!important}
+body.playing .shell{height:100dvh!important;overflow:hidden}
+body.playing #gameView{height:100%;min-height:0;overflow:hidden}
+@media(max-width:1020px){
+ body.playing .main-column{grid-template-rows:29px minmax(110px,1fr) minmax(145px,36%) 38px;gap:3px}
+ body.playing .status-bar{gap:3px}
+ body.playing .stat{padding:3px 6px}
+ body.playing .stat strong{font-size:12px}
+ body.playing .stat span{font-size:9px}
+ body.playing .instruction-panel{top:32px;max-width:98%}
+ body.playing .instruction-panel.muted-phase{top:34px}
+ body.playing .playing-card{--cardW:50px;--cardH:71px}
+ body.playing .trick-faces .playing-card.mini{width:33px;min-width:33px;flex-basis:33px;height:47px;margin-left:-12px}
+ body.playing .trick-faces .playing-card.mini:first-child{margin-left:0}
+ body.playing .trick-faces{min-height:40px}
+}
+@media(max-width:650px){
+ body.playing .shell{grid-template-rows:70px minmax(0,1fr) 12px!important;padding:0 4px}
+ body.playing .topbar{height:70px;min-height:70px;display:grid!important;grid-template-columns:30px 1fr;grid-template-rows:30px 35px;gap:1px 5px;padding:2px 3px}
+ body.playing .brand{grid-column:1;grid-row:1/3;flex:none!important;width:30px!important;align-self:start}
+ body.playing .top-actions{grid-column:2;grid-row:1/3;flex:1!important;display:flex!important;flex-wrap:wrap!important;justify-content:flex-end!important;align-content:center;gap:3px!important;min-height:0!important}
+ body.playing .top-actions .ui-btn.small{padding:5px 6px;font-size:10px;min-height:24px;line-height:1.15}
+ body.playing .feedback-btn{font-size:10px!important}
+ body.playing .main-column{grid-template-rows:29px minmax(130px,1fr) minmax(142px,36%) 33px;gap:2px}
+ body.playing .status-bar{gap:2px}
+ body.playing .stat{padding:2px 4px;gap:1px;align-items:start}
+ body.playing .stat span{font-size:8px}
+ body.playing .stat strong{font-size:11px}
+ body.playing .felt{grid-template-columns:58px minmax(0,1fr) 58px;grid-template-rows:18% 1fr 14%;padding:1px;border-width:3px;border-radius:13px}
+ body.playing .felt:before{inset:6px;border-width:1px}
+ body.playing .seat-info{padding:2px}
+ body.playing .seat .avatar{width:20px;height:20px;font-size:7px}
+ body.playing .seat-words strong{font-size:8px}
+ body.playing .player-name{font-size:8px}
+ body.playing .seat-words small{font-size:8px}
+ body.playing .trick-area{grid-template-rows:36% 28% 36%}
+ body.playing .trick-seat{padding:1px 2px;border-radius:4px}
+ body.playing .trick-who{font-size:8px;margin:0}
+ body.playing .trick-faces{min-height:31px;padding:0 4px 0 1px}
+ body.playing .trick-faces .playing-card.mini{width:26px;min-width:26px;flex-basis:26px;height:39px;margin-left:-13px}
+ body.playing .trick-faces .playing-card.mini:first-child{margin-left:0}
+ body.playing .trick-faces .playing-card.mini .card-index strong{font-size:10px}
+ body.playing .trick-faces .playing-card.mini .card-index em{font-size:9px}
+ body.playing .trick-faces .playing-card.mini .card-center{font-size:10px}
+ body.playing #trickCenter .center-title{font-size:8px;padding:3px 5px}
+ body.playing .hand-heading h3{font-size:10px}
+ body.playing .sort-chip{padding:3px 6px;font-size:10px}
+ body.playing .hand-panel{padding:3px 4px}
+ body.playing .hand-band{padding:2px;gap:2px}
+ body.playing .hand-segment .segment-tag{font-size:11px;width:13px}
+ body.playing .action-panel{gap:3px;padding:0 1px}
+ body.playing .action-buttons{gap:3px}
+ body.playing .action-buttons .ui-btn{padding:6px;font-size:10px}
+ body.playing .action-buttons .ui-btn.primary{padding:7px 12px;font-size:12px}
+ body.playing #autoBtn{padding:6px 4px;font-size:9px}
+ body.playing .action-message{font-size:9px}
+ body.playing .instruction-panel{top:31px;padding:5px;min-width:0}
+ body.playing .instruction-panel.deal-phase{min-width:0;max-width:96%;width:96%;display:block;text-align:center}
+ body.playing .instruction-panel.deal-phase .phase-text{min-width:0;max-width:none}
+ body.playing .instruction-panel .phase-buttons{gap:3px;justify-content:center;flex-wrap:wrap}
+ body.playing .phase-buttons button{font-size:9px;padding:5px}
+ body.playing .phase-text strong{font-size:10px}
+ body.playing .phase-text p{font-size:9px}
+}
+@media(max-width:650px) and (max-height:550px){
+ body.playing .shell{grid-template-rows:44px minmax(0,1fr) 10px!important}
+ body.playing .topbar{height:44px;min-height:44px;display:flex!important}
+ body.playing .top-actions .ui-btn.small{font-size:9px;padding:4px}
+ body.playing .main-column{grid-template-rows:24px minmax(100px,1fr) 98px 29px}
+ body.playing .hand-groups{flex-direction:row;gap:3px}
+ body.playing .hand-band{flex:1!important;min-width:0}
+}
+@media(min-width:651px) and (max-height:520px){
+ body.playing .main-column{grid-template-rows:27px minmax(100px,1fr) 100px 32px}
+ body.playing .instruction-panel{top:30px}
+ body.playing .instruction-panel.muted-phase{top:32px}
+ body.playing .trick-faces .playing-card.mini{width:27px;min-width:27px;flex-basis:27px;height:39px;margin-left:-12px}
+ body.playing .trick-who{font-size:9px}
+ body.playing .trick-faces{min-height:32px}
+}

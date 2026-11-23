@@ -1,0 +1,10 @@
+/* HHgames v1.9.0: show move order only in selected historical trick. */
+body.playing .trick-area.reviewing .trick-order{display:flex!important;flex:none;z-index:4;position:relative;background:#ffe1a3;color:#153227;border:1px solid #fff4d0;box-shadow:0 2px 8px #001b17aa;font-size:11px;width:22px;height:22px}
+/* The flying cards remain hidden once collected; no flashback to the just-played cards. */
+body.playing #trickArea.trick-flying .trick-seat .trick-faces{visibility:hidden!important;opacity:0!important}
+/* Dealer identification lives OUTSIDE the player name frame and stays prominent. */
+body.playing .seat .dealer-outside-badge{position:absolute;z-index:38;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;gap:4px;border:2px solid #fff6c8;border-radius:9px;background:linear-gradient(130deg,#ffdc81,#eab454);color:#342405;padding:5px 11px;font-weight:1000;font-size:15px;letter-spacing:1px;line-height:1;box-shadow:0 3px 12px #001b17c9,0 0 0 2px #ab7224;pointer-events:none}
+body.playing .seat.north .dealer-outside-badge,body.playing .seat.south .dealer-outside-badge{left:calc(100% + 7px);top:3px}
+body.playing .seat.west .dealer-outside-badge,body.playing .seat.east .dealer-outside-badge{bottom:calc(100% + 2px);left:50%;transform:translateX(-50%)}
+@media(max-width:960px){body.playing .seat .dealer-outside-badge{font-size:12px;padding:4px 7px;letter-spacing:.4px;border-width:2px}}
+@media(max-width:650px){body.playing .seat .dealer-outside-badge{font-size:10px;padding:3px 5px;letter-spacing:0;border-width:1px;border-radius:5px;box-shadow:0 2px 5px #001b17a8}body.playing .seat.north .dealer-outside-badge,body.playing .seat.south .dealer-outside-badge{left:calc(100% + 2px);top:0}body.playing .seat.west .dealer-outside-badge,body.playing .seat.east .dealer-outside-badge{bottom:calc(100% + 1px)}body.playing .trick-area.reviewing .trick-order{font-size:9px;width:17px;height:17px}}

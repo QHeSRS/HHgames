@@ -1,0 +1,76 @@
+/* HHgames v1.4.0 — visibly collecting tricks, latest bid and teachable hints */
+body.playing .trick-area.collecting .trick-seat,
+body.playing .trick-area.collecting .trick-seat.collectable {animation:none!important;transition:none!important;transform:none!important;opacity:1!important;}
+body.playing #trickArea.trick-flying .trick-faces{opacity:0!important}
+.trick-flight-layer{position:fixed;inset:0;z-index:6000;pointer-events:none;overflow:visible}
+body.playing .trick-flight-stack{position:absolute!important;display:flex!important;align-items:center;justify-content:center;max-width:none!important;min-height:0!important;overflow:visible!important;background:#0a4c3bda;border:1px solid #9ac1a55c;border-radius:7px;padding:2px 5px!important;box-shadow:0 5px 15px #05221899;transform-origin:50% 50%;z-index:2}
+body.playing .trick-flight-stack .playing-card.mini{flex:0 0 40px!important;width:40px!important;min-width:40px!important;height:57px!important;opacity:1!important}
+body.playing .trick-flight-stack .playing-card.mini + .playing-card.mini{margin-left:-12px!important}
+body.playing .trick-collector-seat .seat-info{outline:3px solid #ffde86;outline-offset:2px;box-shadow:0 0 20px #f4cc70a8!important}
+.trick-flight-result{position:absolute;z-index:10;white-space:nowrap;padding:6px 14px;border-radius:999px;font-size:15px;font-weight:900;letter-spacing:.3px;box-shadow:0 4px 20px #001b17b0;border:2px solid #ffffff9c;transform:translate(-50%,-50%);pointer-events:none}
+.trick-flight-result.our-win{color:#fff;background:#bb334b}
+.trick-flight-result.their-win{color:#fff;background:#267e51}
+body.playing .seat{position:relative;overflow:visible!important}
+body.playing .seat-bid-sticker{position:absolute;left:calc(100% + 8px);top:2px;display:flex;align-items:center;gap:6px;padding:5px 7px;border-radius:9px;background:#173c30ed;border:2px solid #f0cd80;box-shadow:0 4px 16px #021d15a6;z-index:30;white-space:nowrap;pointer-events:none}
+body.playing .seat.east .seat-bid-sticker{left:auto;right:calc(100% + 8px)}
+body.playing .seat-bid-sticker .seat-bid-text{background:#f9dda0;border-radius:5px;font-size:10px;font-weight:900;color:#263225;padding:4px 6px}
+body.playing .seat-bid-sticker .bid-card-strip{display:flex;flex-direction:row;gap:2px;align-items:center}
+body.playing .seat-bid-sticker .bid-card-strip .playing-card{width:30px!important;min-width:30px!important;height:43px!important;flex:0 0 30px!important;margin-left:0!important;border-radius:5px!important;border:1px solid #bfc6bc!important;box-shadow:0 2px 5px #001a137a!important}
+body.playing .seat-bid-sticker .bid-card-strip .card-index strong{font-size:13px!important}
+body.playing .seat-bid-sticker .bid-card-strip .card-index em{font-size:11px!important}
+body.playing .seat-bid-sticker .bid-card-strip .card-center{font-size:15px!important}
+body.playing .seat-kitty-pickup{position:absolute;left:calc(100% + 7px);top:0;z-index:28;padding:5px 9px;border-radius:8px;border:2px solid #ffe0a2;color:#382c13;background:#f9d78a;font-size:11px;font-weight:900;white-space:nowrap;box-shadow:0 0 14px #fad87db3;pointer-events:none;animation:kittyGlowPulse .7s ease-in-out alternate 3}
+body.playing .seat.east .seat-kitty-pickup{left:auto;right:calc(100% + 7px)}
+@keyframes kittyGlowPulse{from{filter:brightness(1);transform:scale(1)}to{filter:brightness(1.2);transform:scale(1.08)}}
+body.playing .kitty-glow-pack{filter:drop-shadow(0 0 7px #ffde72d9)!important}
+body.playing .kitty-glow-face{box-shadow:0 0 0 2px #ffc954,0 0 17px #fcd65d90!important}
+body.playing .kitty-badge{background:#ffd577!important;color:#302818!important;border:1px solid #fff3be!important;font-size:11px!important;box-shadow:0 2px 6px #1822188a!important}
+/* Visible above the cards rather than hidden in the old action-message strip. */
+body.playing #hintExplanation{position:absolute;top:10px;left:10px;width:min(370px,46vw);max-height:66%;overflow-y:auto;z-index:35;background:#102d27f5;color:#f8f2de;border:2px solid #d6bd80;border-radius:12px;box-shadow:0 10px 35px #001d17b8;padding:12px 14px;font-size:12px;line-height:1.46;text-align:left;animation:hintEnter .16s ease-out}
+body.playing #hintExplanation.hidden{display:none!important}
+body.playing #hintExplanation .hint-head{display:flex;gap:6px;align-items:center;justify-content:space-between;color:#ffe6a9;font-size:14px;margin-bottom:7px}
+body.playing #hintExplanation .hint-close{background:#2d5142;color:#fff;border:1px solid #82ab8d;border-radius:7px;width:25px;height:25px;font-size:18px;flex:0 0 auto;line-height:1;padding:0}
+body.playing #hintExplanation .hint-proposed{font-size:12px;padding:7px 8px;background:#235644;border-radius:6px;color:#f9e9b8;margin-bottom:7px;overflow-wrap:anywhere}
+body.playing #hintExplanation .hint-proposed b{color:#fff;font-weight:850}
+body.playing #hintExplanation ul{margin:6px 0 8px;padding-left:18px;display:grid;gap:4px;color:#f4f2e8}
+body.playing #hintExplanation .hint-evidence{border-top:1px solid #718e7b6b;padding-top:7px;font-size:11px;color:#b7cfc2;margin:0}
+@keyframes hintEnter{from{opacity:.4;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:960px){
+ body.playing #hintExplanation{top:5px;left:5px;width:min(325px,52vw);padding:8px 10px;font-size:11px}
+ body.playing .seat-bid-sticker{gap:3px;padding:3px 4px}
+ body.playing .seat-bid-sticker .seat-bid-text{font-size:9px;padding:3px 4px}
+ body.playing .seat-bid-sticker .bid-card-strip .playing-card{width:24px!important;min-width:24px!important;height:35px!important;flex-basis:24px!important}
+ body.playing .seat-bid-sticker .bid-card-strip .card-index strong{font-size:10px!important}
+ body.playing .seat-bid-sticker .bid-card-strip .card-center{font-size:12px!important}
+}
+@media(max-width:650px){
+ body.playing #hintExplanation{top:4px;left:50%;transform:translateX(-50%);width:min(320px,94%);max-height:75%;padding:7px 9px;font-size:10px;animation:none}
+ body.playing #hintExplanation .hint-head{font-size:12px;margin-bottom:4px}
+ body.playing #hintExplanation .hint-proposed{font-size:10px;padding:4px 5px}
+ body.playing #hintExplanation ul{gap:3px;margin:4px 0;padding-left:14px}
+ body.playing #hintExplanation .hint-evidence{font-size:9px;padding-top:4px}
+ body.playing .trick-flight-result{font-size:11px;padding:4px 7px}
+ body.playing .trick-flight-stack .playing-card.mini{width:26px!important;min-width:26px!important;flex-basis:26px!important;height:39px!important}
+ body.playing .seat-bid-sticker{left:calc(100% + 2px);top:0;gap:2px;padding:1px 3px;border-width:1px;border-radius:5px}
+ body.playing .seat.east .seat-bid-sticker{left:auto;right:calc(100% + 2px)}
+ body.playing .seat-bid-sticker .seat-bid-text{font-size:7px;padding:2px}
+ body.playing .seat-bid-sticker .bid-card-strip .playing-card{width:17px!important;min-width:17px!important;height:25px!important;flex-basis:17px!important;border-radius:3px!important}
+ body.playing .seat-bid-sticker .bid-card-strip .card-index strong{font-size:8px!important}
+ body.playing .seat-bid-sticker .bid-card-strip .card-center{font-size:9px!important}
+ body.playing .seat-kitty-pickup{left:calc(100% + 2px);font-size:8px;padding:3px 4px}
+ body.playing .seat.east .seat-kitty-pickup{right:calc(100% + 2px)}
+}
+@media(prefers-reduced-motion:reduce){body.playing #hintExplanation{animation:none!important}}
+/* Announced face-up bid cards must never be dimmed as disabled controls. */
+body.playing .seat-bid-sticker .bid-card-strip .playing-card:disabled{opacity:1!important;filter:none!important}
+
+/* v1.5: show each partnership's current level beside the player */
+.seat-level-chip{display:inline-flex;vertical-align:middle;align-items:center;justify-content:center;border-radius:7px;background:rgba(246,223,160,.18);border:1px solid rgba(243,217,154,.46);color:#ffebbd;padding:1px 6px;font-weight:850;letter-spacing:.2px;font-size:11px;white-space:nowrap}
+.seat.south .seat-level-chip{background:#204f42;color:#fff1ce;border-color:#397f67}
+.seat-words small{display:flex;flex-wrap:wrap;gap:3px;align-items:center}
+@media(max-width:650px){.seat-level-chip{padding:0 4px;font-size:9px;line-height:14px}.seat-words small{gap:2px}}
+
+/* v1.6: multi-report feedback notebook */
+.feedback-collection{border-top:1px solid #b4cdbb;padding:12px 0 2px;margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.feedback-collection .form-actions{display:flex;flex-wrap:wrap;gap:7px}
+#clearBugsBtn{color:#a72e36;border-color:#ae6770}

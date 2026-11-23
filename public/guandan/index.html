@@ -1,0 +1,1891 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="HHgames 掼蛋">
+<meta name="theme-color" content="#0d4a33">
+<title>HHgames · 掼蛋</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+/* VOICE: 牌桌上的安静专注，快节奏
+   IDEA: 一张真实的墨绿绒面牌桌，红色木边
+   PICTURE: 牌桌本身——四家座位、出牌区、手牌列
+   COLOUR and TYPE: 墨绿绒面 #0f5a3e，朱红 #c8322b，金色 #e8c15a；系统中文字体
+   LAYOUT: 顶栏 / 牌桌（对家上、上家左、下家右）/ 操作按钮 / 手牌 */
+:root{--felt:#0f5a3e;--felt2:#0a3f2b;--red:#c8322b;--gold:#e8c15a;--ink:#14231c;--cw:56px;--ch:78px;--sw:34px;--sh:48px;color-scheme:dark}
+*{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#06261a;font:15px/1.4 -apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;color:#f3efe2;-webkit-user-select:none;user-select:none}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);background:radial-gradient(ellipse at 50% 40%,#17734f 0%,var(--felt) 45%,var(--felt2) 100%)}
+#bar{display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(0,0,0,.28);border-bottom:2px solid #7a1f1a;flex:none;flex-wrap:wrap}
+.lv{display:flex;gap:6px;align-items:center;font-size:13px}
+.lv b{background:var(--red);color:#fff;border-radius:6px;padding:1px 8px;font-size:15px}
+.lv b.them{background:#2e5f8e}
+.lv .cur{background:var(--gold);color:#3a2a00}
+#bar .sp{flex:1}
+.tb{background:rgba(255,255,255,.12);color:#f3efe2;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer}
+.tb.on{background:var(--gold);color:#3a2a00}
+#table{position:relative;flex:1;min-height:110px}
+.seat{position:absolute;display:flex;align-items:center;gap:8px}
+#s2{top:6px;left:50%;transform:translateX(-50%);flex-direction:column;gap:16px}
+#s3{left:8px;top:50%;transform:translateY(-55%)}
+#s1{right:8px;top:50%;transform:translateY(-55%);flex-direction:row-reverse}
+.info{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 8px;border-radius:10px;background:rgba(0,0,0,.3);border:2px solid transparent;min-width:58px}
+.info .nm{font-size:13px;font-weight:700}
+.info .cnt{display:flex;align-items:center;gap:4px;font-size:13px}
+.back{width:16px;height:22px;border-radius:3px;background:repeating-linear-gradient(45deg,#9b2620 0 3px,#c8322b 3px 6px);border:1px solid #fff}
+.info.turn{border-color:var(--gold);box-shadow:0 0 12px var(--gold);animation:pulse 1s infinite alternate}
+@keyframes pulse{to{box-shadow:0 0 3px var(--gold)}}
+@media (prefers-reduced-motion:reduce){.info.turn{animation:none}}
+.warn{color:#ffb4a8;font-weight:700}
+.rk{font-size:11px;background:var(--gold);color:#3a2a00;border-radius:4px;padding:0 5px;font-weight:700}
+.played{position:relative;height:var(--sh);display:flex;align-items:center}
+.pass{font-size:17px;font-weight:700;color:#ffe9a8;text-shadow:0 1px 2px #000;padding:0 6px}
+#mine{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px}
+#center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;max-width:70%}
+#info{font-size:14px;color:#fff6d6;text-shadow:0 1px 2px #000;white-space:pre-line}
+#toast{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);background:rgba(0,0,0,.75);padding:8px 18px;border-radius:20px;font-size:16px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:500;white-space:nowrap}
+#toast.show{opacity:1}
+#boom{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%) scale(.5);font-size:44px;font-weight:900;color:var(--gold);text-shadow:0 0 18px #ff5a1f,0 2px 0 #7a1f1a;opacity:0;pointer-events:none;z-index:501}
+#boom.go{animation:boom .8s ease-out}
+@keyframes boom{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}30%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
+@media (max-height:520px){#s2{flex-direction:row;gap:10px}#bar{padding:3px 10px}.info{padding:3px 7px}#mine{bottom:3px}}
+.info .nm{max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{font-size:10px;background:#2e5f8e;color:#fff;border-radius:4px;padding:0 4px;margin-left:3px;font-weight:600}
+.tag.off{background:#8a3b2e}
+#net{font-size:12px;padding:3px 8px;border-radius:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#f3efe2;cursor:pointer;display:none}
+#net.on{display:inline-block}#net.bad{background:#8a3b2e}
+#lobby{position:fixed;inset:0;z-index:800;display:none;align-items:center;justify-content:center;padding:16px;background:radial-gradient(ellipse at 50% 40%,#17734f 0%,#0f5a3e 45%,#0a3f2b 100%)}
+#lobby.show{display:flex}
+#lobby .box{max-width:520px}
+.lk{display:flex;gap:6px;align-items:center;margin:6px 0 10px}
+.lk input,.nmrow input,.srv input{flex:1;font-size:16px;padding:8px 10px;border-radius:8px;border:1px solid #bbb;background:#fff;color:#14231c;min-height:40px}
+.nmrow,.srv{display:flex;gap:6px;align-items:center;margin:8px 0}
+.cross{display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto auto auto;gap:8px;margin:12px 0}
+.st{min-height:62px;border-radius:10px;border:2px solid #d8cfb8;background:#fff;color:#14231c;font-size:14px;padding:6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center}
+.st.ta{border-color:#c8322b}.st.tb{border-color:#2e5f8e}
+.st.empty{background:#f4efe1;color:#8a8270;border-style:dashed}
+.st.pick{box-shadow:0 0 0 3px #e8c15a;background:#fff4cf}
+.st small{font-size:11px;color:#6b6352}
+.st .nm2{font-weight:700;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mid{display:flex;align-items:center;justify-content:center;font-size:12px;color:#6b6352;text-align:center}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0}
+.chip{padding:4px 10px;border-radius:14px;background:#e6dfcb;font-size:13px;cursor:pointer;border:2px solid transparent}
+.chip.pick{border-color:#e8c15a;background:#fff4cf}
+.note{font-size:12px;color:#6b6352}
+.choice{display:grid;gap:10px;margin-top:12px}
+.choice .bt{min-height:52px;font-size:17px}
+
+#bPass,#bPlay{font-size:calc(15px*var(--bs,1));min-height:calc(38px*var(--bs,1));min-width:calc(58px*var(--bs,1));border-radius:calc(19px*var(--bs,1))}
+.mhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}.mhead h2{margin:0}
+/* 大屏（iPad / Mac）：字更大；「不出」「出牌」放在“我”正下方的中间，又大又醒目；「提示」放另一侧 */
+#ctrl .grp.side{margin-left:auto}
+  body.big{font-size:17px}
+  body.big .lv{font-size:16px}body.big .lv b{font-size:19px;padding:2px 10px}
+  body.big .tb{font-size:16px;padding:7px 14px}
+  body.big #net{font-size:14px}
+  body.big .info{padding:7px 12px;min-width:76px}body.big .info .nm{font-size:17px;max-width:150px}body.big .info .cnt{font-size:16px}
+  body.big .back{width:20px;height:28px}
+  body.big .rk{font-size:13px}body.big .tag{font-size:12px}
+  body.big .pass{font-size:22px}
+  body.big .ptype{font-size:13px;top:-18px}
+  body.big #info{font-size:17px}
+  body.big #toast{font-size:20px;padding:10px 24px}
+  body.big #ctrl{display:flex;position:relative;min-height:calc(80px*var(--bs,1));align-items:center;padding:8px 14px}
+  body.big #ctrl .grp.mainbtns{position:absolute;left:max(50%, calc(152px*var(--bs,1) + 9px + 380px));top:50%;transform:translate(-50%,-50%);gap:18px;flex-wrap:nowrap}
+  body.big #ctrl .bt.sm{font-size:18px;min-height:48px;padding:0 18px}
+  body.big #bHint{font-size:19px;min-height:52px;min-width:100px;padding:0 20px;position:fixed;left:calc(14px + env(safe-area-inset-left));bottom:calc(14px + env(safe-area-inset-bottom));z-index:300}
+  body.big #bPass,body.big #bPlay{font-size:calc(26px*var(--bs,1));min-height:calc(61px*var(--bs,1));min-width:calc(152px*var(--bs,1));border-radius:calc(30px*var(--bs,1));padding:0 28px;box-shadow:0 4px 0 rgba(0,0,0,.35)}
+  body.big .box h2{font-size:26px}body.big .box p,body.big .box li{font-size:16px}body.big .box label{font-size:17px}
+@media (max-width:899px){
+  body.big #ctrl #bPass,body.big #ctrl #bPlay{min-width:calc(120px*var(--bs,1));padding:0 16px}
+  body.big #ctrl .grp.mainbtns{left:max(50%, calc(120px*var(--bs,1) + 9px + 250px)) !important}
+}
+@media (max-width:1299px){
+  body.big #ctrl .grp.mainbtns{left:max(50%, calc(152px*var(--bs,1) + 9px + 250px))}
+  body.big #ctrl .grp:first-child{display:grid;grid-template-columns:auto auto;gap:6px}
+  body.big #ctrl .bt.sm{min-height:40px;font-size:16px;padding:0 12px}
+}
+#ctrl{display:flex;justify-content:space-between;gap:6px;padding:4px 8px;flex:none;flex-wrap:wrap}
+#ctrl .grp{display:flex;gap:6px;flex-wrap:wrap}
+.bt{min-height:38px;min-width:58px;padding:0 12px;border-radius:19px;border:none;font-size:15px;font-weight:700;cursor:pointer;background:#f3efe2;color:var(--ink);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.bt.main{background:var(--red);color:#fff}
+.bt.pa{background:#3d6b8f;color:#fff}
+.bt.sm{background:rgba(255,255,255,.16);color:#f3efe2;font-weight:600;font-size:14px;min-width:0}
+.bt:disabled{opacity:.35;cursor:default}
+.bt:active:not(:disabled){transform:translateY(1px)}
+#hand{position:relative;flex:none;touch-action:none;margin-bottom:4px}
+.card{position:absolute;width:var(--cw);height:var(--ch);background:#fffdf7;border-radius:6px;border:1px solid #8b8b80;box-shadow:0 1px 3px rgba(0,0,0,.4);color:#1b1b1b;cursor:pointer;transition:top .08s}
+.card.r{color:#c8221a}
+.card .tl{position:absolute;top:2px;left:3px;text-align:center;font-weight:800;line-height:.95;font-size:calc(var(--cw)*.36);letter-spacing:-1px}
+.card .tl i{display:block;font-style:normal;font-size:calc(var(--cw)*.3);letter-spacing:0}
+.card .big{position:absolute;right:4px;bottom:2px;font-size:calc(var(--cw)*.5)}
+.card.jk .tl{font-size:calc(var(--cw)*.22);writing-mode:vertical-rl;letter-spacing:0;line-height:1}
+.card.h .tl{font-size:calc(var(--cw)*.33);line-height:1;white-space:nowrap;letter-spacing:-1px}
+.card.h .tl i{display:inline;font-size:calc(var(--cw)*.3);margin-left:1px}
+.info.ed{cursor:pointer}.info.ed .nm::after{content:" ✎";font-size:10px;opacity:.6}
+.stat{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:8px 0;font-size:15px}.stat b{font-weight:600;color:#6b6352}
+#hand{-webkit-touch-callout:none}
+.card.jk .big{font-size:calc(var(--cw)*.42)}
+.card.lvl{background:#fff4cf}
+.card.wild::after{content:"配";position:absolute;right:2px;top:2px;font-size:calc(var(--cw)*.22);background:var(--red);color:#fff;border-radius:4px;padding:0 2px;font-weight:700}
+.card.sel{background:#cfe3ff;border-color:#2b6fd6}
+.card.lvl.sel{background:#d8e6ff}
+.card.dim{filter:brightness(.55)}
+.card.grp{border-color:#d49a00;border-width:2px}
+.mini{position:absolute;width:var(--sw);height:var(--sh);background:#fffdf7;border-radius:4px;border:1px solid #8b8b80;color:#1b1b1b;box-shadow:0 1px 2px rgba(0,0,0,.4)}
+.mini.r{color:#c8221a}
+.mini .tl{position:absolute;top:1px;left:2px;text-align:center;font-weight:800;line-height:.95;font-size:calc(var(--sw)*.38);letter-spacing:-1px}
+.mini .tl i{display:block;font-style:normal;font-size:calc(var(--sw)*.32)}
+.mini.jk .tl{writing-mode:vertical-rl;font-size:calc(var(--sw)*.26)}
+.mini.lvl{background:#fff4cf}
+.ptype{font-size:11px;color:var(--gold);position:absolute;top:-15px;left:0;white-space:nowrap;text-shadow:0 1px 2px #000}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:900;padding:16px}
+#modal.show{display:flex}
+.box{background:#fbf6e8;color:var(--ink);border-radius:14px;padding:18px 20px;max-width:440px;width:100%;max-height:90%;overflow:auto;border-top:6px solid var(--red)}
+.box h2{margin:0 0 10px;font-size:22px}
+.box p,.box li{font-size:14px;margin:4px 0}
+.box .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.box .bt{background:#e6dfcb}
+.box .bt.main{background:var(--red)}
+.rev{font-size:13px;margin-top:2px;line-height:1.5}.rev .r{color:#c8221a}.rev span{white-space:nowrap}
+.ord{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:8px 0;font-size:15px}
+.box label{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:15px}
+.seg{display:flex;gap:6px}
+.seg button{flex:1}
+#tracker{position:absolute;top:4px;right:6px;background:rgba(0,0,0,.55);border-radius:8px;padding:5px 7px;display:none;font-size:12px;z-index:50}
+#tracker.show{display:grid;grid-template-columns:repeat(15,auto);gap:1px 6px;text-align:center}
+#tracker .z{color:#ffb4a8}
+
+/* HHgames shared game visual language: felt, gilt, clear red/black suits. */
+#bar{background:linear-gradient(90deg,#09291e,#123b2d);border-bottom:2px solid #a87e3e;gap:clamp(3px,.65vw,8px)}
+#hhHome{display:inline-flex;align-items:center;gap:3px;text-decoration:none;border-color:#a18752!important;background:#112f2b!important;color:#f6d291!important;font-weight:700;white-space:nowrap}
+#hhHome b{font-family:system-ui;font-size:19px;letter-spacing:-2px;color:#fff}
+#hhHome span{letter-spacing:-.45px;color:#f4ead3}
+#hhBuild{font-size:10px;color:#c8a971;white-space:nowrap;opacity:.9}
+.hh-feedback{border-color:#e8b96b!important;background:linear-gradient(#b48b47,#8f632d)!important;color:#fff!important;font-weight:750}
+.tb{white-space:nowrap;touch-action:manipulation}
+#table{background:radial-gradient(ellipse at 50% 45%,#1a7653,#0e5438 72%)}
+#table:before{content:"";position:absolute;inset:10px 15px;border:1.5px solid #d5bb784a;border-radius:50%;pointer-events:none}
+#ctrl{border-top:1px solid #c99f5547;background:#082d23}
+#hand{background:linear-gradient(#0b4631,#0a392b);border-top:1px solid #a77a3642}
+.card:not(.r) .tl,.mini:not(.r) .tl{color:#132c42}
+.card.r .tl,.mini.r .tl{color:#c02320}
+#modal .box{border-top-color:#b78948}
+#bSmart{border:1px solid #d5ab62;background:#9a773f;color:#fff}
+#bSmart:focus-visible,.tb:focus-visible,.bt:focus-visible{outline:2px solid #f4d48c;outline-offset:2px}
+#hhHome:hover,.hh-feedback:hover{filter:brightness(1.12)}
+.hh-modal-textarea{display:block;width:100%;min-height:75px;border:1px solid #b9bcb5;border-radius:8px;padding:10px;font:inherit;resize:vertical;background:#fff;color:#152728}
+.hh-input{width:100%;padding:8px;border-radius:8px;border:1px solid #c2bda9;color:#123;background:#fff;font:inherit}
+.hh-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.hh-actions .bt{min-height:40px}
+#feedbackFocus{max-width:100%}
+.hh-privacy{font-size:12px;color:#786a57;background:#f1ebda;padding:9px;border-radius:7px;margin-top:8px!important}
+@media(max-width:940px){#hhBuild{display:none}#bar{gap:4px}#hhHome{padding:5px 7px}}
+@media(max-width:575px){#hhHome{font-size:11px}#hhHome span{display:none}#bar .lv{gap:2px;font-size:10px}#bar .lv b{font-size:12px;padding:1px 4px}#bar .tb{padding:4px 6px;font-size:11px}#bar{padding:4px 5px;flex-wrap:wrap}#bar .sp{min-width:0}#bTrack{display:none}}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="bar">
+    <a id="hhHome" class="tb" href="../index.html" title="返回 HHgames 游戏大厅">‹ <b>HH</b><span>games</span> · 大厅</a>
+    <div class="lv"><span data-t="us">我方</span><b id="lv0">2</b></div>
+    <div class="lv"><span data-t="them">对方</span><b class="them" id="lv1">2</b></div>
+    <div class="lv"><span data-t="playing">本局打</span><b class="cur" id="lvc">2</b></div><div class="lv" id="dfl" style="opacity:.8"></div>
+    <button id="net"></button>
+    <div class="sp"></div>
+    <span id="hhBuild" title="HHgames build version">HHgames v0.8.0 · 2026-11-22 16:10 UTC+8</span>
+    <button class="tb hh-feedback" id="bFeedback" type="button">反馈 / Bug</button>
+    <button class="tb" id="bTrack" data-t="tracker">记牌器</button>
+    <button class="tb" id="bSet" data-t="settings">设置</button>
+    <button class="tb" id="bHelp" data-t="rules">规则</button>
+  </div>
+  <div id="table">
+    <div id="tracker"></div>
+    <div class="seat" id="s2"><div class="info" id="i2"></div><div class="played" id="p2"></div></div>
+    <div class="seat" id="s3"><div class="info" id="i3"></div><div class="played" id="p3"></div></div>
+    <div class="seat" id="s1"><div class="info" id="i1"></div><div class="played" id="p1"></div></div>
+    <div id="center"><div id="info"></div></div>
+    <div id="mine"><div class="info" id="i0"></div><div class="played" id="p0"></div></div>
+    <div id="toast"></div><div id="boom"></div>
+  </div>
+  <div id="ctrl">
+    <div class="grp">
+      <button class="bt sm" id="bSmart" data-t="smart" data-tt="smartTip">智能理牌</button>
+      <button class="bt sm" id="bSF" data-t="sfBtn" data-tt="sfTip">同花顺</button>
+      <button class="bt sm" id="bGroup" data-t="group" data-tt="groupTip">理牌</button>
+      <button class="bt sm" id="bReset" data-t="reset" data-tt="resetTip">还原</button>
+    </div>
+    <div class="grp side"><button class="bt" id="bHint" data-t="hint">提示</button></div>
+    <div class="grp mainbtns">
+      <button class="bt pa" id="bPass" data-t="pass">不出</button>
+      <button class="bt main" id="bPlay">出牌</button>
+    </div>
+  </div>
+  <div id="hand"></div>
+</div>
+<div id="lobby"><div class="box" id="lbox"></div></div>
+<div id="modal"><div class="box" id="mbox"></div></div>
+<script id="eng">
+// ===================== 掼蛋引擎 =====================
+const SUIT_SYM = ['♠', '♥', '♣', '♦'];
+const RN = {2:'2',3:'3',4:'4',5:'5',6:'6',7:'7',8:'8',9:'9',10:'10',11:'J',12:'Q',13:'K',14:'A',15:'小王',16:'大王'};
+const TYPE_CN = {single:'单张',pair:'对子',triple:'三张',fh:'三带二',straight:'顺子',tube:'三连对',plate:'钢板',bomb:'炸弹',sf:'同花顺',kings:'天王炸'};
+
+function makeDeck() {
+  const d = []; let id = 0;
+  for (let k = 0; k < 2; k++) {
+    for (let s = 0; s < 4; s++) for (let r = 2; r <= 14; r++) d.push({id: id++, r, s});
+    d.push({id: id++, r: 15, s: -1}); d.push({id: id++, r: 16, s: -1});
+  }
+  return d;
+}
+const isWild = (c, L) => c.s === 1 && c.r === L;
+function val(r, L) { return r === 16 ? 17 : r === 15 ? 16 : r === L ? 15 : r; }
+function bombLvl(c) {
+  if (c.type === 'kings') return 11;
+  if (c.type === 'sf') return 5.5;
+  if (c.type === 'bomb') return c.n;
+  return 0;
+}
+function beats(a, b) {
+  if (!b) return true;
+  const x = bombLvl(a), y = bombLvl(b);
+  if (x || y) { if (x !== y) return x > y; return a.v > b.v; }
+  return a.type === b.type && a.n === b.n && a.v > b.v;
+}
+const SEQ_TYPES = {straight: [5, 1], tube: [3, 2], plate: [2, 3]};
+
+// 识别一组牌可能的所有牌型（含逢人配）
+function analyze(cards, L) {
+  const n = cards.length, res = [];
+  if (!n || n > 10) return res;
+  let w = 0; const cnt = {}, nat = [];
+  for (const c of cards) { if (isWild(c, L)) w++; else { nat.push(c); cnt[c.r] = (cnt[c.r] || 0) + 1; } }
+  const ranks = Object.keys(cnt).map(Number);
+  const hasJ = ranks.some(r => r >= 15);
+  if (n === 4 && cnt[15] === 2 && cnt[16] === 2) res.push({type: 'kings', v: 100, n});
+  if (ranks.length === 0) {
+    if (n === 1) res.push({type: 'single', v: 15, n});
+    else if (n === 2) res.push({type: 'pair', v: 15, n});
+  } else if (ranks.length === 1) {
+    const r = ranks[0];
+    if (r >= 15) {
+      if (w === 0) { if (n === 1) res.push({type: 'single', v: val(r, L), n}); else if (n === 2) res.push({type: 'pair', v: val(r, L), n}); }
+    } else {
+      const v = val(r, L);
+      if (n === 1) res.push({type: 'single', v, n});
+      else if (n === 2) res.push({type: 'pair', v, n});
+      else if (n === 3) res.push({type: 'triple', v, n});
+      else res.push({type: 'bomb', v, n});
+    }
+  }
+  if (n === 5) {
+    for (let T = 2; T <= 14; T++) {
+      const cT = cnt[T] || 0; if (cT > 3 || cT === 0) continue;
+      for (let P = 2; P <= 16; P++) {
+        if (P === T) continue;
+        const cP = cnt[P] || 0; if (cP > 2) continue;
+        if (cT + cP !== nat.length) continue;
+        if (P >= 15 && cP !== 2) continue;
+        res.push({type: 'fh', v: val(T, L), n});
+      }
+    }
+    if (!hasJ) {
+      for (let s = 1; s <= 10; s++) {
+        const seen = {}; let ok = true;
+        for (const c of nat) { let k = c.r; if (s === 1 && k === 14) k = 1; if (k < s || k > s + 4 || seen[k]) { ok = false; break; } seen[k] = 1; }
+        if (!ok) continue;
+        res.push({type: 'straight', v: s + 4, n});
+        if (nat.every(c => c.s === nat[0].s)) res.push({type: 'sf', v: s + 4, n});
+      }
+    }
+  }
+  if (n === 6 && !hasJ) {
+    for (const [type, len, need, maxS] of [['tube', 3, 2, 12], ['plate', 2, 3, 13]]) {
+      for (let s = 1; s <= maxS; s++) {
+        const ct = {}; let ok = true;
+        for (const c of nat) { let k = c.r; if (s === 1 && k === 14) k = 1; ct[k] = (ct[k] || 0) + 1; if (k < s || k > s + len - 1 || ct[k] > need) { ok = false; break; } }
+        if (ok) res.push({type, v: s + len - 1, n});
+      }
+    }
+  }
+  const seen = new Set();
+  return res.filter(x => { const k = x.type + x.v; if (seen.has(k)) return false; seen.add(k); return true; });
+}
+function bestInterp(list, tg) {
+  let best = null;
+  for (const x of list) { if (!beats(x, tg)) continue; if (!best || beats(x, best)) best = x; }
+  return best;
+}
+function finalize(cb, L, tg) {
+  if (!cb) return null;
+  const it = bestInterp(analyze(cb.cards, L), tg);
+  return it ? {...it, cards: cb.cards} : null;
+}
+function sortHand(h, L) { return h.slice().sort((a, b) => val(b.r, L) - val(a.r, L) || a.s - b.s); }
+function minus(hand, cards) { const ids = new Set(cards.map(c => c.id)); return hand.filter(c => !ids.has(c.id)); }
+function handInfo(hand, L) {
+  const by = {}; for (let r = 2; r <= 16; r++) by[r] = [];
+  const wild = [];
+  for (const c of hand) { if (isWild(c, L)) wild.push(c); else by[c.r].push(c); }
+  return {by, wild};
+}
+
+// 生成所有能管上 tg 的出法（tg 为空则生成所有）
+function genPlays(hand, L, tg) {
+  const {by, wild} = handInfo(hand, L), w = wild.length, out = [];
+  const want = tg ? tg.type : null, isBT = tg && bombLvl(tg) > 0;
+  const add = (type, v, cards) => { const c = {type, v, n: cards.length, cards}; if (beats(c, tg)) out.push(c); };
+  const same = (k, type) => {
+    for (let r = 2; r <= 16; r++) {
+      const nat = by[r];
+      if (r >= 15) { if (nat.length >= k && k <= 2) add(type, val(r, L), nat.slice(0, k)); continue; }
+      const useW = Math.max(0, k - nat.length);
+      if (useW > w) continue;
+      if (k - useW < 1 && r !== L) continue;
+      add(type, val(r, L), nat.slice(0, k - useW).concat(wild.slice(0, useW)));
+    }
+  };
+  if (!isBT) {
+    if (!want || want === 'single') same(1, 'single');
+    if (!want || want === 'pair') same(2, 'pair');
+    if (!want || want === 'triple') same(3, 'triple');
+    if (!want || want === 'fh') {
+      const trips = [], prs = [];
+      for (let r = 2; r <= 14; r++) { const nl = by[r].length, u = Math.max(0, 3 - nl); if (u <= w && (3 - u >= 1 || r === L)) trips.push({r, u}); }
+      for (let r = 2; r <= 16; r++) {
+        const nl = by[r].length;
+        if (r >= 15) { if (nl >= 2) prs.push({r, u: 0}); continue; }
+        const u = Math.max(0, 2 - nl); if (u <= w && (2 - u >= 1 || r === L)) prs.push({r, u});
+      }
+      prs.sort((a, b) => a.u - b.u || val(a.r, L) - val(b.r, L));
+      for (const t of trips) {
+        if (tg && val(t.r, L) <= tg.v) continue;
+        let cnt = 0;
+        for (const p of prs) {
+          if (p.r === t.r || t.u + p.u > w) continue;
+          add('fh', val(t.r, L), by[t.r].slice(0, 3 - t.u).concat(by[p.r].slice(0, 2 - p.u), wild.slice(0, t.u + p.u)));
+          if (++cnt >= 3) break;
+        }
+      }
+    }
+    for (const type of ['straight', 'tube', 'plate']) {
+      if (want && want !== type) continue;
+      const [len, need] = SEQ_TYPES[type];
+      for (let st = 1; st + len - 1 <= 14; st++) {
+        let cards = [], miss = 0;
+        for (let k = st; k < st + len; k++) { const nat = by[k === 1 ? 14 : k]; const t = Math.min(need, nat.length); cards.push(...nat.slice(0, t)); miss += need - t; }
+        if (miss > w || !cards.length) continue;
+        add(type, st + len - 1, cards.concat(wild.slice(0, miss)));
+      }
+    }
+  }
+  for (let r = 2; r <= 14; r++) {
+    const nl = by[r].length;
+    for (let k = 4; k <= nl + w; k++) {
+      const u = Math.max(0, k - nl);
+      if (k - u < 1) continue;
+      add('bomb', val(r, L), by[r].slice(0, k - u).concat(wild.slice(0, u)));
+    }
+  }
+  for (const sf of findSFs(hand, L)) add('sf', sf.v, sf.cards);
+  if (by[15].length === 2 && by[16].length === 2) add('kings', 100, by[15].concat(by[16]));
+  return out;
+}
+
+function findSFs(hand, L) {
+  const {by, wild} = handInfo(hand, L), out = [];
+  for (let s = 0; s < 4; s++) for (let st = 1; st <= 10; st++) {
+    const cards = []; let miss = 0;
+    for (let k = st; k < st + 5; k++) { const c = by[k === 1 ? 14 : k].find(x => x.s === s); if (c) cards.push(c); else miss++; }
+    if (miss <= wild.length && cards.length >= 3) out.push({cards: cards.concat(wild.slice(0, miss)), v: st + 4, miss, suit: s});
+  }
+  out.sort((a, b) => a.miss - b.miss || b.v - a.v);
+  return out;
+}
+
+// ---------- 拆牌（AI 核心） ----------
+function ctrlG(v) { const x = Math.max(0, Math.min(1, (v - 7) / 10)); return Math.pow(x, 1.5); }
+function ctrlS(t) { const x = Math.max(0, Math.min(1, (t - 8) / 6)); return Math.pow(x, 1.5); }
+function comboCtrl(c) { if (bombLvl(c)) return 1; if (SEQ_TYPES[c.type]) return ctrlS(c.v); return ctrlG(c.v); }
+
+function evalCost(path, grps, kings, L) {
+  let cost = 0, hands = 0, bombs = 0; const tr = [], pr = [];
+  if (kings) { bombs++; cost -= 0.22; }
+  for (const s of path) { cost += 1 - 0.55 * ctrlS(s.s + s.len - 1); hands++; }
+  for (const g of grps) {
+    const m = g.k + g.wd; if (!m) continue;
+    const v = val(g.r, L);
+    if (m >= 4 && g.r < 15) { bombs++; cost -= 0.02 * m; continue; }
+    if (m === 3) tr.push(v); else if (m === 2) pr.push(v); else { cost += 1 - 0.55 * ctrlG(v); hands++; }
+  }
+  pr.sort((a, b) => a - b);
+  const mg = Math.min(tr.length, pr.length);
+  for (const v of tr) { cost += 1 - 0.55 * ctrlG(v); hands++; }
+  for (let i = mg; i < pr.length; i++) { cost += 1 - 0.55 * ctrlG(pr[i]); hands++; }
+  cost -= 0.9 * bombs;
+  return {cost, hands, bombs};
+}
+
+function decompCounts(hand, L) {
+  const {by, wild} = handInfo(hand, L);
+  const c = new Array(15).fill(0);
+  for (let r = 2; r <= 14; r++) c[r] = by[r].length;
+  const sj = by[15].length, bj = by[16].length, W = wild.length;
+  const kings = sj === 2 && bj === 2;
+  let best = null, nodes = 0; const path = [];
+  function leaf(w) {
+    const grps = [];
+    for (let r = 2; r <= 14; r++) if (c[r]) grps.push({r, k: c[r], wd: 0});
+    if (!kings) { if (sj) grps.push({r: 15, k: sj, wd: 0}); if (bj) grps.push({r: 16, k: bj, wd: 0}); }
+    if (w > 0 && !grps.some(g => g.r === L)) grps.push({r: L, k: 0, wd: 0});
+    for (let i = 0; i < w; i++) {
+      let bi = -1, bc = Infinity;
+      for (let j = 0; j < grps.length; j++) {
+        const g = grps[j]; if (g.r >= 15) continue;
+        g.wd++; const cc = evalCost(path, grps, kings, L).cost; g.wd--;
+        if (cc < bc) { bc = cc; bi = j; }
+      }
+      grps[bi].wd++;
+    }
+    const g2 = grps.filter(g => g.k + g.wd > 0);
+    const ev = evalCost(path, g2, kings, L);
+    if (!best || ev.cost < best.cost - 1e-9)
+      best = {cost: ev.cost, hands: ev.hands, path: path.map(p => ({...p, takes: p.takes.slice()})), grps: g2.map(g => ({...g}))};
+  }
+  const SEQ = [['straight', 5, 1], ['tube', 3, 2], ['plate', 2, 3]];
+  function rec(r, ti, w) {
+    if (++nodes > 2500 && best) return;
+    if (r > 13) { leaf(w); return; }
+    rec(r + 1, 0, w);
+    for (let t = ti; t < 3; t++) {
+      const [name, len, need] = SEQ[t];
+      if (r + len - 1 > 14) continue;
+      if (c[r === 1 ? 14 : r] < 1) continue;
+      let miss = 0; const takes = [];
+      for (let k = r; k < r + len; k++) { const h = Math.min(need, c[k === 1 ? 14 : k]); takes.push(h); miss += need - h; }
+      if (miss > w) continue;
+      for (let i = 0; i < len; i++) c[r + i === 1 ? 14 : r + i] -= takes[i];
+      path.push({st: name, s: r, len, need, takes, wild: miss});
+      rec(r, t, w - miss);
+      path.pop();
+      for (let i = 0; i < len; i++) c[r + i === 1 ? 14 : r + i] += takes[i];
+    }
+  }
+  rec(1, 0, W);
+  // 还原成具体的牌
+  const pool = {}; for (let r = 2; r <= 16; r++) pool[r] = by[r].slice();
+  const wp = wild.slice(), groups = [];
+  for (const s of best.path) {
+    const cards = [];
+    for (let i = 0; i < s.len; i++) { const k = s.s + i; cards.push(...pool[k === 1 ? 14 : k].splice(0, s.takes[i])); }
+    cards.push(...wp.splice(0, s.wild));
+    groups.push({type: s.st, v: s.s + s.len - 1, n: cards.length, cards});
+  }
+  if (kings) groups.push({type: 'kings', v: 100, n: 4, cards: pool[15].splice(0).concat(pool[16].splice(0))});
+  for (const g of best.grps) {
+    const cards = pool[g.r].splice(0, g.k).concat(wp.splice(0, g.wd));
+    const m = cards.length;
+    const type = m >= 4 ? 'bomb' : m === 3 ? 'triple' : m === 2 ? 'pair' : 'single';
+    groups.push({type, v: val(g.r, L), n: m, cards});
+  }
+  return {cost: best.cost, hands: best.hands, groups};
+}
+
+const DCACHE = new Map();
+function decompSF(hand, L, depth) {
+  let best = decompCounts(hand, L);
+  if (depth < 2) {
+    const sfs = findSFs(hand, L).slice(0, depth === 0 ? 8 : 3);
+    for (const sf of sfs) {
+      const sub = decompSF(minus(hand, sf.cards), L, depth + 1);
+      const cost = sub.cost - 1.01;
+      if (cost < best.cost - 1e-9) best = {cost, hands: sub.hands, groups: [{type: 'sf', v: sf.v, n: 5, cards: sf.cards}, ...sub.groups]};
+    }
+  }
+  return best;
+}
+function decompose(hand, L) {
+  const key = L + '|' + hand.map(c => c.id).sort((a, b) => a - b).join(',');
+  let r = DCACHE.get(key);
+  if (r) return r;
+  r = decompSF(hand, L, 0);
+  if (DCACHE.size > 30000) DCACHE.clear();
+  DCACHE.set(key, r);
+  return r;
+}
+
+// ---------- 记牌 ----------
+function unseenFor(S, p) {
+  const L = S.level, seen = new Set();
+  for (const c of S.played) seen.add(c.id);
+  for (const c of S.hands[p]) seen.add(c.id);
+  const nat = new Array(17).fill(0); let w = 0;
+  for (const c of S.deck) if (!seen.has(c.id)) { if (isWild(c, L)) w++; else nat[c.r]++; }
+  return {nat, w};
+}
+function isBoss(cb, U, L) {
+  if (bombLvl(cb)) return true;
+  const {nat, w} = U, t = cb.type;
+  const k = t === 'single' ? 1 : t === 'pair' ? 2 : (t === 'triple' || t === 'fh') ? 3 : 0;
+  if (k) {
+    for (let r = 2; r <= 16; r++) {
+      if (val(r, L) <= cb.v) continue;
+      if (r >= 15) { if (nat[r] >= k) return false; } else if (nat[r] + w >= k && (nat[r] >= 1 || r === L)) return false;
+    }
+    return true;
+  }
+  const [len, need] = SEQ_TYPES[t];
+  for (let st = Math.max(1, cb.v - len + 2); st + len - 1 <= 14; st++) {
+    let miss = 0;
+    for (let i = 0; i < len; i++) { const kk = st + i; miss += Math.max(0, need - nat[kk === 1 ? 14 : kk]); }
+    if (miss <= w) return false;
+  }
+  return true;
+}
+
+// ---------- AI 决策 ----------
+function aiLeadList(S, p) {
+  const L = S.level, hand = S.hands[p];
+  const d = decompose(hand, L), U = unseenFor(S, p);
+  const cands = [];
+  const pairs = d.groups.filter(g => g.type === 'pair').sort((a, b) => a.v - b.v);
+  for (const g of d.groups) cands.push(g);
+  for (const t of d.groups.filter(g => g.type === 'triple'))
+    for (const pr of pairs.slice(0, 2)) cands.push({type: 'fh', v: t.v, n: 5, cards: t.cards.concat(pr.cards)});
+  const partner = (p + 2) % 4, pc = S.hands[partner].length;
+  const opps = [(p + 1) % 4, (p + 3) % 4].map(q => S.hands[q].length).filter(n => n > 0);
+  const scored = [];
+  for (const cb0 of cands) {
+    const cb = finalize(cb0, L, null); if (!cb) continue;
+    const after = decompose(minus(hand, cb.cards), L).cost;
+    let sc = after + 0.7 * comboCtrl(cb) - 0.04 * cb.n;
+    const bomb = bombLvl(cb) > 0;
+    if (bomb) sc += 1.5;
+    const boss = isBoss(cb, U, L);
+    for (const oc of opps) {
+      if (bomb || boss) continue;
+      if (oc === cb.n) sc += cb.n <= 3 ? 2.5 : 1.0;
+      else if (oc < cb.n) sc -= 0.2;
+    }
+    if (pc > 0 && pc <= 3 && !bomb && cb.n === pc && (cb.type === 'single' || cb.type === 'pair' || cb.type === 'triple'))
+      sc -= 2 - 0.08 * (cb.v - 2);
+    if (d.hands <= 3 && boss && !bomb) sc -= 1.2;
+    scored.push({cb, sc});
+  }
+  scored.sort((a, b) => a.sc - b.sc);
+  return scored.map(s => s.cb);
+}
+
+function scorePlays(S, p) {
+  const L = S.level, hand = S.hands[p], tg = S.trick.combo;
+  const plays = genPlays(hand, L, tg);
+  const before = decompose(hand, L).cost;
+  const ctrlW = hand.length > 12 ? 0.9 : 0.45;
+  return plays.map(pl => {
+    const dr = decompose(minus(hand, pl.cards), L);
+    const bomb = bombLvl(pl) > 0;
+    return {pl, after: dr.cost, afterHands: dr.hands, delta: dr.cost - before, bomb, score: dr.cost - before + ctrlW * comboCtrl(pl)};
+  });
+}
+
+function aiFollow(S, p) {
+  const L = S.level, hand = S.hands[p], tg = S.trick.combo, winner = S.trick.by;
+  const scored = scorePlays(S, p);
+  if (!scored.length) return null;
+  for (const s of scored) if (s.pl.n === hand.length) return finalize(s.pl, L, tg);
+  const partner = (p + 2) % 4;
+  const oppIdx = [(p + 1) % 4, (p + 3) % 4].filter(q => S.hands[q].length > 0);
+  const minOpp = oppIdx.length ? Math.min(...oppIdx.map(q => S.hands[q].length)) : 99;
+  if (winner === partner) {
+    const pc = S.hands[partner].length;
+    if (pc <= 5 || minOpp <= 3) return null;
+    const nb = scored.filter(s => !s.bomb && s.delta <= -0.3 && comboCtrl(s.pl) < 0.25 && comboCtrl(tg) < 0.25).sort((a, b) => a.delta - b.delta)[0];
+    return nb ? finalize(nb.pl, L, tg) : null;
+  }
+  const wc = S.hands[winner].length;
+  const danger = (wc > 0 && wc <= 6) || minOpp <= 4;
+  const nbs = scored.filter(s => !s.bomb).sort((a, b) => a.score - b.score);
+  const thr = danger ? 4 : 0.35;
+  if (nbs.length && nbs[0].score <= thr) return finalize(nbs[0].pl, L, tg);
+  const bs = scored.filter(s => s.bomb);
+  if (bs.length) {
+    const b = bs.sort((x, y) => (x.delta + 0.35 * bombLvl(x.pl) + 0.02 * x.pl.v) - (y.delta + 0.35 * bombLvl(y.pl) + 0.02 * y.pl.v))[0];
+    const canFinish = b.afterHands <= 1 || b.after <= 0.8;
+    const bigTrick = (tg.n >= 5 && wc <= 12) || (comboCtrl(tg) > 0.6 && wc <= 10);
+    if (danger || canFinish || bigTrick) return finalize(b.pl, L, tg);
+  }
+  return null;
+}
+
+function aiDecide(S, p) {
+  const hand = S.hands[p], L = S.level;
+  if (!S.trick) {
+    const whole = bestInterp(analyze(hand, L), null);
+    if (whole) return {...whole, cards: hand.slice()};
+    return aiLeadList(S, p)[0];
+  }
+  return aiFollow(S, p);
+}
+
+function hintsFor(S, p) {
+  if (!S.trick) {
+    const whole = bestInterp(analyze(S.hands[p], S.level), null);
+    const list = aiLeadList(S, p);
+    return whole ? [{...whole, cards: S.hands[p].slice()}, ...list] : list;
+  }
+  const sc = scorePlays(S, p);
+  const nb = sc.filter(s => !s.bomb).sort((a, b) => a.score - b.score);
+  const bb = sc.filter(s => s.bomb).sort((a, b) => bombLvl(a.pl) - bombLvl(b.pl) || a.pl.v - b.pl.v);
+  const out = [], seen = new Set();
+  const ai = aiFollow(S, p);
+  for (const pl of [ai, ...nb.map(s => s.pl), ...bb.map(s => s.pl)]) {
+    if (!pl) continue;
+    const k = pl.cards.map(c => c.id).sort().join(',');
+    if (seen.has(k)) continue; seen.add(k);
+    const f = finalize(pl, S.level, S.trick.combo); if (f) out.push(f);
+  }
+  return out;
+}
+
+function chooseReturn(hand, L) {
+  let c = hand.filter(x => x.r <= 10 && !isWild(x, L));
+  if (!c.length) c = hand.filter(x => !isWild(x, L) && x.r < 15);
+  if (!c.length) c = hand.slice();
+  let best = null, bc = Infinity;
+  for (const x of c) {
+    const v = decompose(minus(hand, [x]), L).cost + 0.01 * val(x.r, L);
+    if (v < bc) { bc = v; best = x; }
+  }
+  return best;
+}
+
+// ---------- 对局流程 ----------
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function newGameState() { return {levels: [2, 2], banker: 0, round: 0, lastOrder: null, deck: makeDeck(), gameOver: false}; }
+function nextActive(S, p) { let q = (p + 1) % 4; while (S.hands[q].length === 0 && q !== p) q = (q + 1) % 4; return q; }
+
+function startRound(S) {
+  S.round++; S.level = S.levels[S.banker];
+  DCACHE.clear();
+  const d = shuffle(S.deck.slice());
+  S.hands = [0, 1, 2, 3].map(i => d.slice(i * 27, i * 27 + 27));
+  S.played = []; S.trick = null; S.passCount = 0; S.lastAction = [null, null, null, null];
+  S.finished = []; S.roundOver = false; S.result = null; S.tribute = null;
+  if (S.lastOrder) S.tribute = computeTribute(S);
+  else S.turn = Math.random() * 4 | 0;
+  S.hands = S.hands.map(h => sortHand(h, S.level));
+}
+
+function computeTribute(S) {
+  const o = S.lastOrder, L = S.level;
+  const dbl = (o[0] % 2) === (o[1] % 2);
+  const givers = dbl ? [o[2], o[3]] : [o[3]];
+  const bj = givers.reduce((s, g) => s + S.hands[g].filter(c => c.r === 16).length, 0);
+  if (bj >= 2) return {anti: true, givers, leader: o[0], gives: [], rets: []};
+  const tc = g => S.hands[g].filter(c => !isWild(c, L)).sort((a, b) => val(b.r, L) - val(a.r, L))[0];
+  const gl = givers.map(g => ({from: g, card: tc(g)}));
+  if (dbl) { gl.sort((a, b) => val(b.card.r, L) - val(a.card.r, L)); gl[0].to = o[0]; gl[1].to = o[1]; }
+  else gl[0].to = o[0];
+  for (const g of gl) { S.hands[g.from] = minus(S.hands[g.from], [g.card]); S.hands[g.to].push(g.card); }
+  return {anti: false, gives: gl, rets: gl.map(g => ({from: g.to, to: g.from, card: null, done: false})), leader: gl[0].from};
+}
+function doReturn(S, ret, card) {
+  S.hands[ret.from] = minus(S.hands[ret.from], [card]);
+  S.hands[ret.to] = sortHand(S.hands[ret.to].concat([card]), S.level);
+  ret.card = card; ret.done = true;
+}
+
+function doPlay(S, p, combo) {
+  S.hands[p] = minus(S.hands[p], combo.cards);
+  S.played.push(...combo.cards);
+  S.trick = {combo, by: p}; S.lastAction[p] = combo; S.passCount = 0;
+  if (S.hands[p].length === 0) {
+    S.finished.push(p);
+    const f = S.finished, done = t => f.includes(t) && f.includes(t + 2);
+    if (done(0) || done(1) || f.length >= 3) { finishRound(S); return 'roundEnd'; }
+  }
+  S.turn = nextActive(S, p);
+  return 'play';
+}
+function doPass(S, p) {
+  S.lastAction[p] = 'pass'; S.passCount++;
+  const activeN = [0, 1, 2, 3].filter(q => S.hands[q].length > 0).length;
+  const winner = S.trick.by, wAct = S.hands[winner].length > 0;
+  if (S.passCount >= (wAct ? activeN - 1 : activeN)) {
+    let leader = winner;
+    if (!wAct) { leader = (winner + 2) % 4; if (S.hands[leader].length === 0) leader = nextActive(S, winner); }
+    S.trick = null; S.turn = leader; S.passCount = 0;
+    return 'trickEnd';
+  }
+  S.turn = nextActive(S, p);
+  return 'pass';
+}
+function finishRound(S) {
+  const order = S.finished.slice();
+  for (const p of [0, 1, 2, 3]) if (!order.includes(p)) order.push(p);
+  const first = order[0], team = first % 2, pp = order.indexOf((first + 2) % 4);
+  const up = pp === 1 ? 3 : pp === 2 ? 2 : 1;
+  const res = {order, team, up, prevLevels: S.levels.slice(), level: S.level, win: false};
+  if (S.levels[team] === 14 && S.level === 14 && S.banker === team && pp <= 2) { res.win = true; S.gameOver = true; }
+  else S.levels[team] = Math.min(14, S.levels[team] + up);
+  S.banker = team; S.lastOrder = order; S.roundOver = true; S.result = res;
+  return res;
+}
+
+if (typeof module !== 'undefined') module.exports = {makeDeck, analyze, bestInterp, genPlays, decompose, aiDecide, hintsFor, newGameState, startRound, doPlay, doPass, doReturn, chooseReturn, beats, bombLvl, isWild, val, findSFs, TYPE_CN};
+
+// ---------- 模拟推演（蒙特卡洛） ----------
+function cloneState(S) {
+  return {level: S.level, levels: S.levels.slice(), banker: S.banker, deck: S.deck, hands: S.hands.map(h => h.slice()), played: S.played.slice(),
+    trick: S.trick ? {combo: S.trick.combo, by: S.trick.by} : null, passCount: S.passCount, turn: S.turn, finished: S.finished.slice(),
+    lastAction: [null, null, null, null], roundOver: false, gameOver: false};
+}
+function sampleWorld(S, p) {
+  const W = cloneState(S), seen = new Set();
+  for (const c of S.played) seen.add(c.id);
+  for (const c of S.hands[p]) seen.add(c.id);
+  const pool = shuffle(S.deck.filter(c => !seen.has(c.id)));
+  let k = 0;
+  for (let q = 0; q < 4; q++) { if (q === p) continue; const n = S.hands[q].length; W.hands[q] = pool.slice(k, k + n); k += n; }
+  return W;
+}
+function playout(W0, p, cand) {
+  const W = cloneState(W0);
+  let ev = cand ? doPlay(W, p, cand) : doPass(W, p);
+  let steps = 0;
+  while (!W.roundOver && steps++ < 500) {
+    const q = W.turn, c = aiDecide(W, q);
+    if (c) doPlay(W, q, c); else doPass(W, q);
+  }
+  if (!W.result) return 0;
+  const r = W.result, sign = r.team === p % 2 ? 1 : -1;
+  // 细化：除了升级数，也看自己这边谁先走
+  return sign * r.up;
+}
+function mcCandidates(S, p) {
+  const L = S.level, hand = S.hands[p];
+  if (!S.trick) {
+    const whole = bestInterp(analyze(hand, L), null);
+    if (whole) return [{...whole, cards: hand.slice()}];
+    return aiLeadList(S, p).slice(0, 6);
+  }
+  const sc = scorePlays(S, p);
+  if (!sc.length) return [null];
+  for (const s of sc) if (s.pl.n === hand.length) return [finalize(s.pl, L, S.trick.combo)];
+  const nb = sc.filter(s => !s.bomb).sort((a, b) => a.score - b.score).slice(0, 4).map(s => s.pl);
+  const bb = sc.filter(s => s.bomb).sort((a, b) => bombLvl(a.pl) - bombLvl(b.pl) || a.pl.v - b.pl.v).slice(0, 2).map(s => s.pl);
+  return [null, ...nb, ...bb].map(c => c && finalize(c, L, S.trick.combo));
+}
+function mcDecide(S, p, budgetMs, now) {
+  now = now || (() => Date.now());
+  const base = aiDecide(S, p);
+  const key = c => c ? c.cards.map(x => x.id).sort((a, b) => a - b).join(',') : 'pass';
+  const cands = [], seen = new Set();
+  for (const c of [base, ...mcCandidates(S, p)]) { const k = key(c); if (seen.has(k)) continue; seen.add(k); cands.push(c); }
+  if (cands.length <= 1) return base;
+  const sum = new Array(cands.length).fill(0);
+  const t0 = now(); let n = 0;
+  while (now() - t0 < budgetMs && n < 400) {
+    const W = sampleWorld(S, p);
+    for (let i = 0; i < cands.length; i++) sum[i] += playout(W, p, cands[i]);
+    n++;
+  }
+  let bi = 0, bv = -Infinity;
+  for (let i = 0; i < cands.length; i++) {
+    const v = sum[i] / n + (i === 0 ? 0.15 : 0);   // 样本少时偏向原判断，避免被噪声带偏
+    if (v > bv) { bv = v; bi = i; }
+  }
+  return cands[bi];
+}
+if (typeof module !== 'undefined') Object.assign(module.exports, {mcDecide, sampleWorld, playout});
+
+// ---------- 中英文 ----------
+const L10N = {
+  zh: {
+    us: '我方', them: '对方', playing: '本局打', tracker: '记牌器', settings: '设置', rules: '规则',
+    smart: '智能理牌', smartTip: '按最优拆牌把顺子、同花顺、炸弹等分好列', sfBtn: '同花顺', sfTip: '依次选出手里能组成的同花顺',
+    group: '理牌', groupTip: '把选中的牌放成一列', reset: '还原', resetTip: '恢复按点数排列，并取消选中', pass: '不出', hint: '提示', play: '出牌', ret: '还贡',
+    rel: ['我', '下家', '对家', '上家'], ranks: ['头游', '二游', '三游', '末游'],
+    diff: {normal: '普通', hard: '困难', master: '大师'}, speed: {fast: '快', mid: '中', slow: '慢', slower: '很慢'},
+    types: {single: '单张', pair: '对子', triple: '三张', fh: '三带二', straight: '顺子', tube: '三连对', plate: '钢板', bomb: '炸弹', sf: '同花顺', kings: '天王炸'},
+    sj: '小王', bj: '大王', trSj: '小', trBj: '大',
+    cpu: '电脑：', cards: n => `${n} 张`, thinking: '思考中…', left: n => `剩余 ${n} 张`, seat: n => `座位${n}`,
+    bot: 'Bot', offBot: '掉线·电脑代打',
+    lRound: (r, L) => `第 ${r} 局 · 打 ${L} · 红桃${L}是配牌`, lAnti: names => `${names} 有两张大王，抗贡！`,
+    lGive: (a, c, b) => `${a} 进贡 ${c} 给 ${b}`, lRet: (a, c, b) => `${a} 还贡 ${c} 给 ${b}`, lWaitRet: a => `等待 ${a} 还贡…`, lFirst: a => `${a} 先出`,
+    pickRet: '请选一张 10 或以下的牌还贡', pickRet2: '请选一张 10 或以下的牌', noBeat: '要不起',
+    fxKings: '天王炸！', fxSF: '同花顺！', fxBomb: '炸弹！', fxOut: (a, r) => `${a} ${r}！`, fxOutR: (a, i) => `${a} ${['头游', '二游', '三游', '末游'][i]}！`, fxEnd: '本局结束，亮牌',
+    winAll: '🎉 我方打过 A，赢得整场！', loseAll: '对方打过 A，赢得整场', winR: '本局我方获胜', loseR: '本局对方获胜',
+    usTag: '（我方）', themTag: '（对方）', upTo: (side, up, L) => `${side}升 ${up} 级 → 下局打 <b>${L}</b>`, lvNow: (a, b) => `级数：我方 ${a} · 对方 ${b}`,
+    waitNext: '等待房主开始下一局…', waitNew: '等待房主开始新的一场…', next: '下一局', again: '再来一场',
+    selFirst: '请先选牌', badType: '牌型不对', cantBeat: '管不上', noHint: '没有能管上的牌', mustPlay: '必须出牌', notInHand: '牌不在手里',
+    sorted: n => `已按最优拆法整理：约 ${n} 手牌`, noSF: '手里组不成同花顺', sfPick: (i, n, m) => `同花顺 ${i}/${n}${m ? `（用 ${m} 张配）` : ''}，点「理牌」放成一列`,
+    groupFirst: '先选几张牌，再点理牌', resetDone: '已还原，并取消所有选中',
+    online: '线上', connected: '已连接', reconnecting: '重连中…', elsewhere: '已在别处打开', notHost: '房主身份校验失败', badAddr: '地址无效', cantConn: '连不上',
+    hostGone: '房主掉线，等待…', hostGoneT: '房主连接中断，等他回来',
+    srvOk: '服务器正常', srvNotRelay: '这个地址不是联机服务器（可能部署的只是网页，没有中转程序）', srvFail: '打不开服务器：地址不对，或被网络屏蔽（国内请开 VPN 全局模式）',
+    room: r => `线上房间 ${r}`, srvConnected: '已连接服务器', srvConnecting: '正在连接服务器…', srvCant: '连不上服务器', teams: '座位1和3一队，2和4一队',
+    copy: '复制链接', copied: '链接已复制', yourName: '你的名字', namePh: '起个名字', table: '牌桌', emptyTap: '空位，点击入座', empty: '空位',
+    hostTag: '房主', offline: '离线', you: '你',
+    tipSwap2: '再点一个座位：和他换位置', tipSwap: '点一个人，再点另一个座位，就能给他换座位', tipFull: '这局已经开始了，座位已满', tipSit: '点一个空位入座', tipWait: '等待房主开始游戏',
+    unseated: '还没入座的人', unseatedHost: '还没入座的人（点名字再点座位，可以帮他入座）', leaveSolo: '离开，玩单机', start: '开始游戏', botFill: '不足 4 人时，空位由电脑补上。',
+    player: '玩家', hostDefault: '房主', computer: '电脑',
+    hostNote: '你是房主：牌局在你的设备上运行，请保持页面打开、屏幕常亮。', guestNote: '房主的设备负责运行牌局；掉线后会自动重连。', leaveRoom: '退出房间', ok: '好',
+    title: '离线掼蛋', howPlay: '选择怎么玩', solo: '单机（不用网络）', onlineBtn: '线上：创建房间，发链接给朋友', onlineGh: '线上模式请用 GitHub 上的版本打开。',
+    server: '服务器', needSrv: '第一次用线上模式，需要填你部署好的 Cloudflare 服务器地址。', fillSrv: '请先填服务器地址',
+    setCpuHost: '电脑难度和出牌速度由房主设置。', setDiff: '电脑难度', setDiffNote: '困难 / 大师：每步先模拟推演几百种可能的牌局再出牌，每步约 1 秒 / 2 秒。',
+    setSpeed: '出牌速度', setAuto: '要不起时自动跳过', setSort: '每局发牌后自动智能理牌', setSrv: '联机服务器', test: '测试', setLang: '语言 Language', setBtn: '「不出」「出牌」按键大小', setLayout: '界面布局', layout: {auto: '自动', big: '大屏（iPad / 电脑）', small: '手机'}, verLine: (v, wh, l) => `版本 ${v} · 窗口 ${wh} · 当前：${l}`, btn: {normal: '标准', large: '大', xl: '特大'},
+    modeBtn: '单机 / 线上', restart: '重新开始整场', restartQ: '重新开始？', restartNote: '两边级数都回到 2。', cancel: '取消',
+    names: '电脑玩家改名', namesNote: '改名随时生效。清空就恢复默认名字。', save: '保存', rename: n => `给「${n}」改名`,
+    stats: '游戏统计', stRounds: '累计游戏局数', stTime: '累计游戏时间', stMonth: '本月游戏时间', stPeople: '线上一起玩过的人数',
+    stNote: '只在打牌时计时（页面在前台）。统计保存在这台设备的这个浏览器里，不能清零。', hm: (h, m) => `${h} 小时 ${m} 分钟`,
+    helpHtml: `<h2>规则与操作</h2>
+<p><b>牌型</b>：单张、对子、三张、三带二、顺子（5张）、三连对、钢板（两个连续三张）。同牌型比大小。</p>
+<p><b>炸弹</b>从小到大：4张 &lt; 5张 &lt; 同花顺 &lt; 6张 &lt; 7张 &lt; 8张… &lt; 天王炸（4张王）。</p>
+<p><b>级牌</b>：本局打几，几就是仅次于王的大牌；<b>红桃级牌是配牌</b>（标“配”），可以当任何非王牌用。</p>
+<p><b>升级</b>：头游一方升级——对家二游升3级，三游升2级，末游升1级。打 A 时须头游且对家不是末游才算赢。</p>
+<p><b>进贡</b>：末游把最大的牌（不含红桃配）进贡给头游，头游还一张10或以下的牌；双下时两人都进贡。进贡方手里有两张大王可以抗贡。</p>
+<p><b>操作</b>：点牌选中，手指滑过可连选，<b>按住</b>或<b>双击</b>一张牌选中整列。「同花顺」依次帮你挑出能组的同花顺，再点「理牌」放成一列；「智能理牌」按电脑的最优拆法自动分好列；「还原」恢复按点数排列并取消选中。</p>
+<p><b>改名</b>：点牌桌上电脑玩家的名字，可以随时给它改名。</p>
+<p><b>线上</b>：设置里选「单机 / 线上」创建房间，把链接发给朋友。房主可以给大家换座位，点开始后空位由电脑补上。</p>
+<p>电脑键盘：回车出牌，空格不出，H 提示，S 智能理牌。</p>`,
+  },
+  en: {
+    us: 'Us', them: 'Them', playing: 'Level', tracker: 'Counter', settings: 'Settings', rules: 'Rules',
+    smart: 'Smart sort', smartTip: 'Group straights, bombs etc. using the best split', sfBtn: 'Str. flush', sfTip: 'Pick the straight flushes you can make, one by one',
+    group: 'Group', groupTip: 'Put selected cards into one column', reset: 'Reset', resetTip: 'Back to sort by rank and clear selection', pass: 'Pass', hint: 'Hint', play: 'Play', ret: 'Return',
+    rel: ['Me', 'Right', 'Partner', 'Left'], ranks: ['1st', '2nd', '3rd', '4th'],
+    diff: {normal: 'Normal', hard: 'Hard', master: 'Master'}, speed: {fast: 'Fast', mid: 'Medium', slow: 'Slow', slower: 'Very slow'},
+    types: {single: 'Single', pair: 'Pair', triple: 'Triple', fh: 'Full house', straight: 'Straight', tube: 'Tube', plate: 'Plate', bomb: 'Bomb', sf: 'Str. flush', kings: '4 Jokers'},
+    sj: 'Small Joker', bj: 'Big Joker', trSj: 'SJ', trBj: 'BJ',
+    cpu: 'CPU: ', cards: n => `${n} cards`, thinking: 'Thinking…', left: n => `${n} left`, seat: n => `Seat ${n}`,
+    bot: 'Bot', offBot: 'Offline · CPU plays',
+    lRound: (r, L) => `Round ${r} · Level ${L} · ♥${L} is wild`, lAnti: names => `${names} hold both Big Jokers: no tribute!`,
+    lGive: (a, c, b) => `${a} gives ${c} to ${b}`, lRet: (a, c, b) => `${a} returns ${c} to ${b}`, lWaitRet: a => `Waiting for ${a} to return a card…`, lFirst: a => `${a} leads`,
+    pickRet: 'Pick a card of 10 or lower to return', pickRet2: 'Pick one card of 10 or lower', noBeat: 'Can\'t beat',
+    fxKings: '4 Jokers!', fxSF: 'Straight flush!', fxBomb: 'Bomb!', fxOut: (a, r) => `${a}: ${r}!`, fxOutR: (a, i) => `${a} finished ${['1st', '2nd', '3rd', '4th'][i]}!`, fxEnd: 'Round over: cards shown',
+    winAll: '🎉 We passed A and won the game!', loseAll: 'They passed A and won the game', winR: 'We won this round', loseR: 'They won this round',
+    usTag: ' (us)', themTag: ' (them)', upTo: (side, up, L) => `${side} go up ${up} → next level <b>${L}</b>`, lvNow: (a, b) => `Levels: us ${a} · them ${b}`,
+    waitNext: 'Waiting for the host to start the next round…', waitNew: 'Waiting for the host to start a new game…', next: 'Next round', again: 'New game',
+    selFirst: 'Select cards first', badType: 'Not a valid combo', cantBeat: 'Doesn\'t beat it', noHint: 'Nothing beats it', mustPlay: 'You must play', notInHand: 'Card not in hand',
+    sorted: n => `Sorted by best split: about ${n} plays`, noSF: 'No straight flush possible', sfPick: (i, n, m) => `Straight flush ${i}/${n}${m ? ` (uses ${m} wild)` : ''}; tap Group to make a column`,
+    groupFirst: 'Select some cards, then tap Group', resetDone: 'Reset, selection cleared',
+    online: 'Online', connected: 'connected', reconnecting: 'reconnecting…', elsewhere: 'opened elsewhere', notHost: 'host check failed', badAddr: 'bad address', cantConn: 'can\'t connect',
+    hostGone: 'host offline, waiting…', hostGoneT: 'Host disconnected, waiting for them',
+    srvOk: 'Server OK', srvNotRelay: 'This address is not the game server (maybe only the web page was deployed)', srvFail: 'Can\'t reach the server: wrong address or blocked (in China use a VPN in global mode)',
+    room: r => `Online room ${r}`, srvConnected: 'Connected to server', srvConnecting: 'Connecting to server…', srvCant: 'Can\'t connect', teams: 'Seats 1 & 3 vs 2 & 4',
+    copy: 'Copy link', copied: 'Link copied', yourName: 'Your name', namePh: 'Pick a name', table: 'Table', emptyTap: 'Empty, tap to sit', empty: 'Empty',
+    hostTag: 'Host', offline: 'Offline', you: 'you',
+    tipSwap2: 'Now tap another seat to swap', tipSwap: 'Tap a player, then another seat, to move them', tipFull: 'The game has started; all seats taken', tipSit: 'Tap an empty seat to sit', tipWait: 'Waiting for the host to start',
+    unseated: 'Not seated yet', unseatedHost: 'Not seated yet (tap a name, then a seat, to seat them)', leaveSolo: 'Leave, play solo', start: 'Start game', botFill: 'Empty seats are filled by the computer.',
+    player: 'Player', hostDefault: 'Host', computer: 'CPU',
+    hostNote: 'You are the host: the game runs on your device. Keep this page open and the screen on.', guestNote: 'The host\'s device runs the game. You reconnect automatically if dropped.', leaveRoom: 'Leave room', ok: 'OK',
+    title: 'Guandan', howPlay: 'How do you want to play?', solo: 'Solo (no internet needed)', onlineBtn: 'Online: create a room and share the link', onlineGh: 'For online play, open the GitHub version.',
+    server: 'Server', needSrv: 'First time online: enter your Cloudflare server address.', fillSrv: 'Enter the server address first',
+    setCpuHost: 'CPU level and speed are set by the host.', setDiff: 'CPU level', setDiffNote: 'Hard / Master: simulates hundreds of possible deals before each move, about 1 s / 2 s per move.',
+    setSpeed: 'Play speed', setAuto: 'Auto-pass when I can\'t beat', setSort: 'Smart sort after each deal', setSrv: 'Server', test: 'Test', setLang: '语言 Language', setBtn: 'Pass / Play button size', setLayout: 'Layout', layout: {auto: 'Auto', big: 'Large (iPad / computer)', small: 'Phone'}, verLine: (v, wh, l) => `Version ${v} · window ${wh} · now: ${l}`, btn: {normal: 'Standard', large: 'Large', xl: 'Extra large'},
+    modeBtn: 'Solo / Online', restart: 'Restart game', restartQ: 'Restart?', restartNote: 'Both teams go back to level 2.', cancel: 'Cancel',
+    names: 'Rename CPU players', namesNote: 'Changes apply right away. Leave empty for the default name.', save: 'Save', rename: n => `Rename "${n}"`,
+    stats: 'Stats', stRounds: 'Rounds played', stTime: 'Total play time', stMonth: 'This month', stPeople: 'People played with online',
+    stNote: 'Time counts only while playing with the page in front. Stored in this browser on this device; it can\'t be reset.', hm: (h, m) => `${h} h ${m} min`,
+    helpHtml: `<h2>Rules & controls</h2>
+<p><b>Combos</b>: single, pair, triple, full house (3+2), straight (5 cards), tube (3 consecutive pairs), plate (2 consecutive triples). Same type compares by rank.</p>
+<p><b>Bombs</b>, low to high: 4 of a kind &lt; 5 &lt; straight flush &lt; 6 &lt; 7 &lt; 8… &lt; 4 Jokers.</p>
+<p><b>Level card</b>: the current level rank is the highest card below the Jokers. <b>The heart of the level rank is wild</b> (marked 配) and can stand in for any non-Joker card.</p>
+<p><b>Going up</b>: the team of the 1st finisher goes up 3 if the partner is 2nd, 2 if 3rd, 1 if last. At level A you must finish 1st with your partner not last to win.</p>
+<p><b>Tribute</b>: the last finisher gives their highest card (not the wild heart) to the 1st, who returns a card of 10 or lower. If a team finishes 3rd and 4th, both pay. Holding both Big Jokers cancels the tribute.</p>
+<p><b>Controls</b>: tap to select, slide to select several, <b>press and hold</b> or <b>double-tap</b> to select a column. "Str. flush" picks possible straight flushes; tap "Group" to make a column. "Smart sort" groups your hand; "Reset" sorts by rank and clears selection.</p>
+<p><b>Rename</b>: tap a CPU player's name on the table.</p>
+<p><b>Online</b>: Settings → "Solo / Online" to create a room and share the link. The host can move players; empty seats get CPU players.</p>
+<p>Keyboard: Enter play, Space pass, H hint, S smart sort.</p>`,
+  },
+};
+
+</script>
+<script>
+{
+const $ = id => document.getElementById(id);
+const APPVER = 'HHgames v0.8.0 · 2026-11-22 16:10 UTC+8 / Guandan source 2026-11-20 v8';
+const BUDGET = {normal: 0, hard: 900, master: 2000};
+let LANG = (() => { try { const v = JSON.parse(localStorage.getItem('gd_set') || '{}').lang; if (v) return v; } catch (e) {} return 'zh'; })();   // 默认中文，用户在设置里改过才用英文
+const T = (k, ...a) => { const v = (L10N[LANG] && L10N[LANG][k] !== undefined) ? L10N[LANG][k] : L10N.zh[k]; return typeof v === 'function' ? v(...a) : (v === undefined ? k : v); };
+const RANKCN = new Proxy([], {get: (t, i) => T('ranks')[i]});
+const DIFFCN = new Proxy({}, {get: (t, k) => T('diff')[k]});
+const SPEEDS = {fast: {ai: 260, trick: 1100, auto: 320}, mid: {ai: 600, trick: 1400, auto: 600}, slow: {ai: 1000, trick: 1800, auto: 900}, slower: {ai: 1700, trick: 2400, auto: 1300}};   // trick = 每一轮出完后的停顿
+const BOTNAMES = {zh: ['Mr. Q','HH Boy','Prof. Wang','HH Girl','HH Bot 5','HH Bot 6'], en: ['Mr. Q','HH Boy','Prof. Wang','HH Girl','HH Bot 5','HH Bot 6']};
+const DEFAULT_SRV = (location.protocol !== 'file:' && !/(?:github\.io|pages\.dev)$/.test(location.host) && location.host) ? location.host : 'guandan.heqr1.workers.dev';   // 你的 Cloudflare 服务器
+const store = {get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }};
+const UI = {sel: new Set(), groups: [], hints: null, hi: -1, sfs: null, sfi: -1, phase: 'play',
+  reqId: 0, thinking: -1, set: Object.assign({layout: 'auto', btnSize: 'normal', diff: 'master', speed: 'fast', autoPass: true, autoSort: true, tracker: false}, store.get('gd_set', {}))};
+UI.set.lang = LANG;
+let BOTNM = store.get('HHgames.playerNames.v1', store.get('gd_botnames', ['Mr. Q','HH Boy','Prof. Wang','HH Girl']));   // 单机时电脑玩家的自定义名字
+const IN_CLAUDE = /claude/.test(location.host);
+// 联机状态
+let MODE = 'offline', ME = 0, SEATS = null;
+const NET = {ws: null, room: '', srv: store.get('gd_srv', '') || DEFAULT_SRV, cid: store.get('gd_cid', null), key: '', people: {}, started: false, retry: 0,
+  fx: {seq: 0}, pick: null, waiting: false, lastFx: 0, dealKey: '', shownEnd: -1, status: '', autoSeq: ''};
+if (!NET.cid) { NET.cid = Math.random().toString(36).slice(2, 10); store.set('gd_cid', NET.cid); }
+let myName = BOTNM[0] || store.get('gd_name', 'Mr. Q');
+function saveSharedHHNames(){store.set('HHgames.playerNames.v1',[myName||'Mr. Q',BOTNM[1]||'HH Boy',BOTNM[2]||'Prof. Wang',BOTNM[3]||'HH Girl']);}
+
+let S = newGameState();
+let timer = null, FEEDBACK_PAUSED = false, FEEDBACK_REPORT = null;
+const HH_DIAG = []; // Detailed move-by-move private local log, including state BEFORE each action.
+const deepClone = data => JSON.parse(JSON.stringify(data));
+const sched = (fn, ms) => { clearTimeout(timer); if (FEEDBACK_PAUSED) {timer=null;return;} timer = setTimeout(fn, ms); };
+
+const sp = () => SPEEDS[UI.set.speed] || SPEEDS.fast;
+const rel = p => (p - ME + 4) % 4;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+function nameOf(p) { if (MODE === 'offline') return (p === ME ? (myName || 'Mr. Q') : (BOTNM[p] || ['Mr. Q','HH Boy','Prof. Wang','HH Girl'][p])); const s = SEATS && SEATS[p]; return s && s.name ? s.name : T('seat', p + 1); }
+function isBotSeat(p) { return MODE === 'offline' ? p !== ME : !!(SEATS && SEATS[p] && SEATS[p].kind === 'bot'); }
+function tagOf(p) {
+  if (MODE === 'offline') return p !== ME && BOTNM[p] ? '<span class="tag">Bot</span>' : '';
+  if (!SEATS || !SEATS[p]) return '';
+  const s = SEATS[p];
+  if (s.kind === 'bot') return '<span class="tag">Bot</span>';
+  if (s.kind === 'remote' && !s.online) return `<span class="tag off">${T('offBot')}</span>`;
+  return '';
+}
+
+function blank() { S.hands = [[], [], [], []]; S.lastAction = [null, null, null, null]; S.finished = []; S.played = []; S.level = S.levels[S.banker]; S.turn = -1; S.trick = null; S.log = []; }
+function loadOffline() {
+  S = newGameState(); blank();
+  const saved = store.get('gd_game', null);
+  if (saved && saved.levels) { S.levels = saved.levels; S.banker = saved.banker; S.round = saved.round || 0; S.lastOrder = saved.lastOrder; }
+}
+function saveGame() { if (MODE === 'offline') store.set('gd_game', S.gameOver ? null : {levels: S.levels, banker: S.banker, round: S.round, lastOrder: S.lastOrder}); }
+function cardName(c) { return c.r >= 15 ? T(c.r === 16 ? 'bj' : 'sj') : SUIT_SYM[c.s] + RN[c.r]; }
+// 牌桌中间的信息：存成 [键, 参数...]，显示时按当前语言翻译；参数 {p} 是玩家，{c} 是牌
+function logLine(e) { const a = e.slice(1).map(x => x && x.p !== undefined ? nameOf(x.p) : x && x.c ? cardName(x.c) : x && x.ps ? x.ps.map(nameOf).join(LANG === 'zh' ? '、' : ', ') : x); return T(e[0], ...a); }
+function addLog(...e) { (S.log = S.log || []).push(e); }
+function toast(t, ms = 1100) { const e = $('toast'); e.textContent = t; e.classList.add('show'); clearTimeout(e._t); e._t = setTimeout(() => e.classList.remove('show'), ms); }
+function boom(t) { const e = $('boom'); e.textContent = t; e.classList.remove('go'); void e.offsetWidth; e.classList.add('go'); }
+function fx(key, args, isBoom) { NET.fx = {seq: NET.fx.seq + 1, key, args: args || [], boom: isBoom}; const t = logLine([key, ...(args || [])]); isBoom ? boom(t) : toast(t); }
+
+function cardHTML(c, cls, style) {
+  const L = S.level, red = c.s === 1 || c.s === 3 || c.r === 16;
+  const k = [cls, red ? 'r' : '', c.r >= 15 ? 'jk' : '', c.r === L ? 'lvl' : '', isWild(c, L) ? 'wild' : ''].join(' ');
+  const tl = c.r >= 15 ? 'JOKER' : RN[c.r] + '<i>' + SUIT_SYM[c.s] + '</i>';
+  const big = c.r >= 15 ? (c.r === 16 ? '★' : '☆') : SUIT_SYM[c.s];
+  return `<div class="${k}" data-id="${c.id}" style="${style}"><div class="tl">${tl}</div>${cls === 'card' ? `<div class="big">${big}</div>` : ''}</div>`;
+}
+
+// ---------- 手牌布局 ----------
+function columns() {
+  const hand=S.hands[ME],L=S.level,byId=new Map(hand.map(c=>[c.id,c]));
+  UI.groups=UI.groups.filter(g=>g.length&&g.every(id=>byId.has(id)));
+  const used=new Set(UI.groups.flat());
+  const cols=UI.groups.map(g=>{
+    const cards=g.map(id=>byId.get(id)).sort((a,b)=>(isWild(a,L)-isWild(b,L))||val(b.r,L)-val(a.r,L)||a.s-b.s);
+    const options=analyze(cards,L);const sf=options.some(o=>o.type==='sf');
+    const straight=options.some(o=>o.type==='straight')&&!sf;
+    return{locked:true,cards,straight};
+  });
+  const free=new Map();for(const c of hand){if(used.has(c.id))continue;const k=isWild(c,L)?L:c.r;if(!free.has(k))free.set(k,[]);free.get(k).push(c);}
+  const loose=[...free.values()].map(cards=>({locked:false,straight:false,cards:cards.sort((a,b)=>val(b.r,L)-val(a.r,L)||a.s-b.s)}));
+  // Reset / smart-sort leftovers should follow pure rank order, not group-size priority.
+  loose.sort((a,b)=>val(b.cards[0].r,L)-val(a.cards[0].r,L) || b.cards.length-a.cards.length || a.cards[0].s-b.cards[0].s);
+  return cols.filter(c=>!c.straight).concat(loose,cols.filter(c=>c.straight));
+}
+function sizeVars() {
+  const W = innerWidth, H = innerHeight;
+  const lay = UI.set.layout || 'auto';
+  const big = lay === 'big' ? true : lay === 'small' ? false : (W >= 680 && H >= 460);
+  document.body.classList.toggle('big', big);
+  const cw = Math.round(Math.max(40, Math.min(big ? 80 : 66, W / 10.5, H * (big ? 0.11 : 0.115))));
+  const sw = Math.round(cw * 0.62);
+  const r = document.documentElement.style;
+  r.setProperty('--cw', cw + 'px'); r.setProperty('--ch', Math.round(cw * 1.4) + 'px');
+  r.setProperty('--sw', sw + 'px'); r.setProperty('--sh', Math.round(sw * 1.4) + 'px');
+  UI.cw = cw; UI.sw = sw; UI.big = big;
+}
+function renderHand() {
+  const el = $('hand'), cols = columns(), cw = UI.cw, ch = Math.round(cw * 1.4);
+  const maxN0 = Math.max(1, ...cols.map(c => c.cards.length));
+  const gut = UI.big ? 130 : 0;   // 大屏左下角留给「提示」按钮
+  const W = (el.clientWidth || innerWidth) - gut, n = cols.length;
+  const spx = n > 1 ? Math.min(cw + 4, (W - cw - 12) / (n - 1)) : 0;
+  // 列之间够宽：点数和花色横排，每张露一行即可；太挤：竖排，每张多露一点，保证花色看得见
+  const horiz = n <= 1 || spx >= cw * 0.82;
+  const vo = Math.round(horiz ? cw * 0.4 : cw * 0.7);
+  const x0 = gut + (W - (spx * (n - 1) + cw)) / 2;
+  el.style.height = (ch + (maxN0 - 1) * vo + 14) + 'px';
+  const ret = UI.phase === 'return';
+  let h = '';
+  cols.forEach((col, i) => col.cards.forEach((c, j) => {
+    const sel = UI.sel.has(c.id);
+    const dim = ret && !(c.r <= 10 && !isWild(c, S.level));
+    h += cardHTML(c, 'card' + (horiz && c.r < 15 ? ' h' : '') + (sel ? ' sel' : '') + (col.locked ? ' grp' : '') + (dim ? ' dim' : ''), `left:${x0 + i * spx}px;top:${12 + j * vo - (sel ? 10 : 0)}px;z-index:${i * 20 + j}`);
+  }));
+  el.innerHTML = h;
+  UI.cols = cols;
+}
+function miniRow(cards, label) {
+  const sw = UI.sw, gap = Math.round(sw * 0.52);
+  let h = label ? `<span class="ptype">${label}</span>` : '';
+  cards.forEach((c, i) => h += cardHTML(c, 'mini', `left:${i * gap}px;z-index:${i}`));
+  return {h, w: cards.length ? gap * (cards.length - 1) + sw : 0};
+}
+function renderPlayed(p) {
+  const a = S.lastAction[p], el = $('p' + rel(p));
+  if (S.roundOver && S.hands[p].length && S.hands[p][0].r) { const m = miniRow(sortHand(S.hands[p], S.level), T('left', S.hands[p].length)); el.innerHTML = m.h; el.style.width = m.w + 'px'; return; }
+  if (!a) { el.innerHTML = ''; el.style.width = '0'; return; }
+  if (a === 'pass') { el.innerHTML = `<span class="pass">${T('pass')}</span>`; el.style.width = 'auto'; return; }
+  const cards = sortHand(a.cards, S.level);
+  if (SEQ_TYPES[a.type] || a.type === 'sf') cards.sort((x, y) => (isWild(x, S.level) - isWild(y, S.level)) || x.r - y.r);
+  const m = miniRow(cards, T('types')[a.type]);
+  el.innerHTML = m.h; el.style.width = m.w + 'px';
+}
+function renderInfo(p) {
+  const n = S.hands[p].length, fi = S.finished.indexOf(p);
+  const turn = S.turn === p && !S.roundOver && UI.phase !== 'wait';
+  const el = $('i' + rel(p));
+  el.className = 'info' + (turn ? ' turn' : '') + (isBotSeat(p) ? ' ed' : '');
+  el.dataset.seat = p;
+  el.innerHTML = `<span class="nm">${esc(nameOf(p))}${fi >= 0 ? ` <span class="rk">${RANKCN[fi]}</span>` : ''}</span>${tagOf(p)}` +
+    (UI.thinking === p ? `<span class="cnt">${T('thinking')}</span>` : p === ME ? `<span class="cnt">${T('cards', n)}</span>` : `<span class="cnt"><span class="back"></span><span class="${n <= 10 && n > 0 ? 'warn' : ''}">${n}</span></span>`);
+}
+function renderTracker() {
+  const el = $('tracker');
+  el.classList.toggle('show', UI.set.tracker);
+  $('bTrack').classList.toggle('on', UI.set.tracker);
+  if (!UI.set.tracker) return;
+  const U = unseenFor(S, ME), L = S.level;
+  const ranks = [16, 15, L, ...[14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2].filter(r => r !== L)];
+  const lab = r => r === 16 ? T('trBj') : r === 15 ? T('trSj') : RN[r];
+  el.innerHTML = ranks.map(r => `<span>${lab(r)}</span>`).join('') +
+    ranks.map(r => { const v = U.nat[r] + (r === L ? U.w : 0); return `<span class="${v === 0 ? 'z' : ''}">${v}</span>`; }).join('');
+  el.style.gridTemplateColumns = `repeat(${ranks.length},auto)`;
+}
+function renderNet() {
+  const e = $('net');
+  e.classList.toggle('on', MODE !== 'offline');
+  if (MODE === 'offline') return;
+  const ok = NET.ws && NET.ws.readyState === 1;
+  e.classList.toggle('bad', !ok);
+  e.textContent = `${T('online')} ${NET.room} · ${ok ? (NET.status ? T(NET.status) : T('connected')) : T('reconnecting')}`;
+}
+function myTurnNow() { return !FEEDBACK_PAUSED && S.turn === ME && UI.phase === 'play' && !S.roundOver && !UI.busy && !NET.waiting; }
+function render() {
+  $('lv0').textContent = RN[S.levels[ME % 2]]; $('lv1').textContent = RN[S.levels[1 - ME % 2]];
+  $('lvc').textContent = RN[S.level] || '2';
+  $('dfl').textContent = MODE === 'guest' ? '' : T('cpu') + DIFFCN[UI.set.diff];
+  for (const p of [0, 1, 2, 3]) { renderInfo(p); renderPlayed(p); }
+  const myTurn = myTurnNow();
+  $('bPlay').textContent = UI.phase === 'return' ? T('ret') : T('play');
+  $('bPlay').disabled = !(myTurn || (UI.phase === 'return' && !NET.waiting));
+  $('bPass').disabled = !(myTurn && S.trick);
+  $('bHint').disabled = !myTurn;
+  const tableEmpty = S.lastAction.every(a => !a);
+  $('info').textContent = tableEmpty ? (S.log || []).map(logLine).join('\n') : '';
+  renderTracker(); renderNet(); renderHand();
+  if (MODE === 'host') hostBroadcastSoon();
+}
+
+// ---------- 流程（单机 / 房主） ----------
+function controller(p) {
+  if (MODE === 'offline') return p === ME ? 'local' : 'bot';
+  const s = SEATS[p];
+  if (s.kind === 'local') return 'local';
+  if (s.kind === 'remote' && s.online) return 'remote';
+  return 'bot';
+}
+function newRound() {
+  HH_DIAG.length=0;
+  UI.reqId++; UI.pending = null; UI.thinking = -1; UI.busy = false;
+  startRound(S);
+  S.tribDone = false;
+  UI.sel.clear(); UI.groups = []; UI.hints = null; UI.sfs = null;
+  S.log = [['lRound', S.round, RN[S.level]]];
+  if (S.tribute) {
+    const TR = S.tribute;
+    if (TR.anti) addLog('lAnti', {ps: TR.givers});
+    else for (const g of TR.gives) addLog('lGive', {p: g.from}, {c: g.card}, {p: g.to});
+  }
+  processReturns();
+}
+function processReturns() {
+  const TR = S.tribute;
+  UI.waitRet = -1;
+  if (TR && !TR.anti) {
+    for (const r of TR.rets) {
+      if (r.done) continue;
+      const k = controller(r.from);
+      if (k === 'local') { UI.phase = 'return'; if (UI.set.autoSort) smartSort(true); render(); toast(T('pickRet'), 2000); return; }
+      if (k === 'remote') { UI.phase = 'wait'; UI.waitRet = r.from; if (!S.log.some(e => e[0] === 'lWaitRet')) addLog('lWaitRet', {p: r.from}); if (UI.set.autoSort) smartSort(true); render(); return; }
+      doReturn(S, r, chooseReturn(S.hands[r.from], S.level));
+      addLog('lRet', {p: r.from}, {c: r.card}, {p: r.to});
+    }
+  }
+  if (TR) S.turn = TR.leader;
+  UI.phase = 'play'; S.tribDone = true;
+  if (UI.set.autoSort) smartSort(true);
+  addLog('lFirst', {p: S.turn});
+  render();
+  sched(tick, 700);
+}
+function tick() {
+  if (FEEDBACK_PAUSED || MODE === 'guest') return;
+  if (UI.phase !== 'play' || S.roundOver) return;
+  const p = S.turn;
+  UI.hints = null; UI.hi = -1;
+  render();
+  const k = controller(p);
+  if (k === 'local') {
+    if (S.trick && UI.set.autoPass && genPlays(S.hands[ME], S.level, S.trick.combo).length === 0) {
+      toast(T('noBeat'), 700); UI.busy = true; render();
+      sched(() => act(ME, null), sp().auto);
+    }
+    return;
+  }
+  if (k === 'remote') return;    // 等远程玩家
+  aiTurn(p);
+}
+let worker = null;
+function getWorker() {
+  if (worker !== null) return worker;
+  try {
+    const tail = `\nonmessage=e=>{const d=e.data;let c;try{c=mcDecide(d.S,d.p,d.budget)}catch(err){c=aiDecide(d.S,d.p)}postMessage({rid:d.rid,c:c?{type:c.type,v:c.v,n:c.n,ids:c.cards.map(x=>x.id)}:null})};`;
+    worker = new Worker(URL.createObjectURL(new Blob([$('eng').textContent + tail], {type: 'text/javascript'})));
+    worker.onmessage = e => { if (e.data.rid === UI.reqId && UI.pending) UI.pending(e.data.c, true); };
+    worker.onerror = () => { worker = false; if (UI.pending) UI.pending(null, false); };
+  } catch (e) { worker = false; }
+  return worker;
+}
+function aiTurn(p) {
+  if (FEEDBACK_PAUSED) return;
+  const t0 = Date.now(), rid = ++UI.reqId, budget = BUDGET[UI.set.diff] || 0;
+  const finish = c => {
+    if (rid !== UI.reqId || S.roundOver || S.turn !== p) return;
+    UI.pending = null; UI.thinking = -1;
+    sched(() => act(p, c), Math.max(0, sp().ai - (Date.now() - t0)));
+  };
+  const w = budget ? getWorker() : null;
+  if (!w) { finish(aiDecide(S, p)); return; }
+  UI.pending = (c, ok) => {
+    if (!ok) { finish(aiDecide(S, p)); return; }
+    if (!c) { finish(S.trick ? null : aiDecide(S, p)); return; }
+    const cards = c.ids.map(id => S.hands[p].find(x => x.id === id));
+    finish(cards.every(Boolean) ? {type: c.type, v: c.v, n: c.n, cards} : aiDecide(S, p));
+  };
+  UI.thinking = p; render();
+  w.postMessage({rid, p, budget, S: {level: S.level, levels: S.levels, banker: S.banker, deck: S.deck, hands: S.hands, played: S.played, trick: S.trick, passCount: S.passCount, turn: S.turn, finished: S.finished}});
+}
+function act(p, c) {
+  if (S.roundOver || FEEDBACK_PAUSED) return;
+  const diagnosticBefore = deepClone({level:S.level,levels:S.levels,banker:S.banker,round:S.round,turn:S.turn,trick:S.trick,lastAction:S.lastAction,hands:S.hands,finished:S.finished,played:S.played,tribute:S.tribute,passCount:S.passCount});
+  const dRec = {at:new Date().toISOString(),player:p,name:nameOf(p),bot:controller(p)==='bot',phase:UI.phase,action:c?{type:c.type,value:c.v,count:c.n,ids:c.cards.map(x=>x.id),cards:deepClone(c.cards)}:{type:'pass'},before:diagnosticBefore};
+  HH_DIAG.push(dRec);
+  if(HH_DIAG.length>180)HH_DIAG.shift();
+  UI.hints = null; UI.busy = false; UI.reqId++; UI.thinking = -1;
+  if (c && S.trick === null) S.lastAction = [null, null, null, null];
+  const ev = c ? doPlay(S, p, c) : doPass(S, p);
+  dRec.event = ev; dRec.nextTurn = S.turn; dRec.roundOver = !!S.roundOver;
+  if (c && bombLvl(c)) fx(c.type === 'kings' ? 'fxKings' : c.type === 'sf' ? 'fxSF' : 'fxBomb', [], true);
+  if (c && p === ME) UI.sel.clear();
+  if (c && S.hands[p].length === 0 && !S.roundOver) fx('fxOutR', [{p}, S.finished.indexOf(p)]);
+  render();
+  if (ev === 'roundEnd') { fx('fxEnd'); saveGame(); statRound(); sched(showRoundEnd, 2800); return; }
+  if (ev === 'trickEnd') { UI.busy = true; render(); sched(() => { UI.busy = false; S.lastAction = [null, null, null, null]; S.log = []; render(); tick(); }, sp().trick); return; }
+  tick();
+}
+function showRoundEnd() {
+  const R = S.result; if (!R) return;
+  NET.shownEnd = S.round;
+  const mine = R.team === ME % 2;
+  let h = `<h2>${R.win ? (mine ? T('winAll') : T('loseAll')) : (mine ? T('winR') : T('loseR'))}</h2><div class="ord">`;
+  R.order.forEach((p, i) => {
+    const hand = S.hands[p].filter(c => c.r);
+    const left = hand.length ? `<div class="rev">${sortHand(hand, S.level).map(c => `<span class="${c.s === 1 || c.s === 3 || c.r === 16 ? 'r' : ''}">${cardName(c)}</span>`).join(' ')}</div>` : '';
+    h += `<b>${RANKCN[i]}</b><span>${esc(nameOf(p))}${p % 2 === ME % 2 ? T('usTag') : T('themTag')}${left}</span>`;
+  });
+  h += '</div>';
+  if (!R.win) h += `<p>${T('upTo', mine ? T('us') : T('them'), R.up, RN[S.levels[R.team]])}</p><p>${T('lvNow', RN[S.levels[ME % 2]], RN[S.levels[1 - ME % 2]])}</p>`;
+  if (MODE === 'guest') h += `<p class="note">${R.win ? T('waitNew') : T('waitNext')}</p>`;
+  else h += `<div class="row">${R.win ? `<button class="bt main" id="mNew">${T('again')}</button>` : `<button class="bt main" id="mNext">${T('next')}</button>`}</div>`;
+  modal(h);
+  if (MODE === 'guest') return;
+  if (R.win) $('mNew').onclick = () => { closeModal(); S = newGameState(); saveGame(); newRound(); };
+  else $('mNext').onclick = () => { closeModal(); newRound(); };
+}
+function modal(h) { $('mbox').innerHTML = h; $('modal').classList.add('show'); }
+function closeModal() { $('modal').classList.remove('show'); if(FEEDBACK_PAUSED){FEEDBACK_PAUSED=false;FEEDBACK_REPORT=null;UI.busy=false;render();if(MODE!=='guest'&&!S.roundOver&&UI.phase==='play')sched(tick,200);} }
+
+// ---------- 玩家操作 ----------
+function selCards() { return S.hands[ME].filter(c => UI.sel.has(c.id)); }
+function onPlay() {
+  if (UI.phase === 'return') {
+    if (NET.waiting) return;
+    const cs = selCards();
+    if (cs.length !== 1 || cs[0].r > 10 || isWild(cs[0], S.level)) { toast(T('pickRet2')); return; }
+    UI.sel.clear();
+    if (MODE === 'guest') { netSend({t: 'ret', id: cs[0].id}); NET.waiting = true; render(); return; }
+    const r = S.tribute.rets.find(x => x.from === ME && !x.done);
+    doReturn(S, r, cs[0]); addLog('lRet', {p: ME}, {c: cs[0]}, {p: r.to});
+    processReturns(); return;
+  }
+  if (!myTurnNow()) return;
+  const cs = selCards();
+  if (!cs.length) { toast(T('selFirst')); return; }
+  const it = analyze(cs, S.level);
+  if (!it.length) { toast(T('badType')); return; }
+  const b = bestInterp(it, S.trick ? S.trick.combo : null);
+  if (!b) { toast(T('cantBeat')); return; }
+  clearTimeout(timer);
+  if (MODE === 'guest') { netSend({t: 'play', ids: cs.map(c => c.id)}); NET.waiting = true; UI.sel.clear(); render(); return; }
+  act(ME, {...b, cards: cs});
+}
+function onPass() {
+  if (!myTurnNow() || !S.trick) return;
+  clearTimeout(timer); UI.sel.clear();
+  if (MODE === 'guest') { netSend({t: 'pass'}); NET.waiting = true; render(); return; }
+  act(ME, null);
+}
+function onHint() {
+  if (!myTurnNow()) return;
+  if (!UI.hints) { UI.hints = userHints(); UI.hi = -1; }
+  if (!UI.hints.length) { toast(T('noHint')); return; }
+  UI.hi = (UI.hi + 1) % UI.hints.length;
+  UI.sel = new Set(UI.hints[UI.hi].cards.map(c => c.id));
+  render();
+}
+// 提示：优先按玩家自己理好的列来推荐，实在不行再拆
+function userHints() {
+  const L = S.level, hand = S.hands[ME], tg = S.trick ? S.trick.combo : null, cols = columns();
+  const locked = cols.filter(c => c.locked).map(c => c.cards), free = cols.filter(c => !c.locked).map(c => c.cards);
+  const freeCards = free.flat();
+  const key = c => c.cards.map(x => x.id).sort((a, b) => a - b).join(',');
+  const colOf = new Map(); cols.forEach((c, i) => c.cards.forEach(x => colOf.set(x.id, i)));
+  const score = c => {
+    let s = decompose(minus(hand, c.cards), L).cost + 0.6 * comboCtrl(c) + (bombLvl(c) ? 3 : 0) - 0.03 * c.n;
+    const used = new Map(); c.cards.forEach(x => used.set(colOf.get(x.id), (used.get(colOf.get(x.id)) || 0) + 1));
+    for (const [i, k] of used) if (k < cols[i].cards.length) s += 0.8;   // 拆散了某一列
+    return s;
+  };
+  const whole = bestInterp(analyze(hand, L), tg);
+  if (whole) return [{...whole, cards: hand.slice()}];
+  let mine = [];
+  for (const g of locked) { const f = finalize({cards: g}, L, tg); if (f) mine.push(f); }
+  if (!tg) {
+    for (const g of free) { const f = finalize({cards: g}, L, null); if (f) mine.push(f); }
+    const trips = free.filter(g => g.length === 3), pairs = free.filter(g => g.length === 2).sort((a, b) => val(a[0].r, L) - val(b[0].r, L));
+    for (const t of trips) for (const p of pairs.slice(0, 2)) { const f = finalize({cards: t.concat(p)}, L, null); if (f) mine.push(f); }
+  } else {
+    for (const pl of genPlays(freeCards, L, tg)) { const f = finalize(pl, L, tg); if (f) mine.push(f); }
+  }
+  mine = mine.map(c => ({c, s: score(c)})).sort((a, b) => a.s - b.s).map(x => x.c);
+  const out = [], seen = new Set();
+  for (const c of [...mine, ...hintsFor(S, ME)]) { const k = key(c); if (seen.has(k)) continue; seen.add(k); out.push(c); }
+  return out;
+}
+
+// HHgames 智能理牌: enumerate 0..3 disjoint straight-flush choices, both before
+// and after preserving natural bombs. Score the result to favor MORE power
+// combinations. This is a display planner; the original AI evaluator is retained.
+function smartPlan(hand, L) {
+  const allPlans=[]; let nodes=0;
+  const countBombs = cards => {
+    const {by,wild}=handInfo(cards,L), groups=[];
+    const kings=(by[15].length===2 && by[16].length===2);
+    if(kings) groups.push({type:'kings',n:4,v:100,cards:by[15].concat(by[16])});
+    for(let r=2;r<=14;r++)if(by[r].length>=4)groups.push({type:'bomb',n:by[r].length,v:val(r,L),cards:by[r].slice()});
+    // Avoid spending a wild on a pair when it can make a new bomb; never split a natural bomb.
+    let w=wild.slice();
+    for(let r=14;r>=2;r--)if(by[r].length===3 && w.length){const wc=w.shift();groups.push({type:'bomb',n:4,v:val(r,L),cards:by[r].concat(wc)});}
+    return groups;
+  };
+  function evaluate(rest, sfGroups) {
+    const bombs=countBombs(rest), left=minus(rest,bombs.flatMap(g=>g.cards));
+    const cnt=handInfo(left,L).by;
+    let pairs=0,singles=0,triples=0;
+    for(let r=2;r<=16;r++){if(cnt[r].length>=2)pairs++;if(cnt[r].length===1)singles++;if(cnt[r].length===3)triples++;}
+    const power=bombs.reduce((a,g)=>a+(g.type==='kings'?250:105+Math.max(0,g.n-4)*8),0)+sfGroups.length*135;
+    const score=power+pairs*5+triples*4-singles*.5;
+    allPlans.push({score,bombs,sfGroups,left});
+  }
+  function rec(rest, sfs, depth){
+    evaluate(rest,sfs);if(depth>=3||++nodes>=110)return;
+    const options=findSFs(rest,L).slice(0,depth===0?11:7);
+    for(const sf of options)rec(minus(rest,sf.cards),sfs.concat([{type:'sf',n:5,v:sf.v,cards:sf.cards}]),depth+1);
+  }
+  rec(hand,[],0);
+  const natural=countBombs(hand), rest=minus(hand,natural.flatMap(g=>g.cards));
+  const fixed=[];const recFixed=(cards,sfs,depth)=>{
+    const remainBombs=countBombs(cards);
+    const remaining=minus(cards,remainBombs.flatMap(g=>g.cards));
+    const powers=natural.concat(remainBombs);
+    const pairCount=[...EVAL_COUNTS(remaining)].filter(n=>n>=2).length;
+    const score=powers.reduce((a,g)=>a+(g.type==='kings'?250:105+(g.n-4)*8),0)+sfs.length*135+pairCount*5;
+    fixed.push({score,bombs:powers,sfGroups:sfs,left:remaining});
+    if(depth>=3||fixed.length>100)return;
+    for(const sf of findSFs(cards,L).slice(0,depth===0?10:6))recFixed(minus(cards,sf.cards),sfs.concat([{type:'sf',n:5,v:sf.v,cards:sf.cards}]),depth+1);
+  };
+  function* EVAL_COUNTS(cards){const c=handInfo(cards,L).by;for(let k=2;k<=16;k++)yield c[k].length;}
+  recFixed(rest,[],0);
+  const best=allPlans.concat(fixed).sort((a,b)=>b.score-a.score)[0];
+  const taken=new Set(best.bombs.concat(best.sfGroups).flatMap(g=>g.cards.map(c=>c.id)));
+  const remainder=hand.filter(c=>!taken.has(c.id));
+  const d=decompose(remainder,L);
+  return {groups:best.bombs.concat(best.sfGroups,d.groups),hands:d.hands,bombs:best.bombs.length,straightFlushes:best.sfGroups.length};
+}
+function smartSort(quiet) {
+  const L=S.level, plan=smartPlan(S.hands[ME],L);
+  const order={kings:0,bomb:1,sf:2,plate:3,tube:4,fh:5,triple:6,pair:7,single:8,straight:99};
+  plan.groups.sort((a,b)=>(order[a.type]-order[b.type]) || ((a.type==='bomb'||a.type==='kings')? (b.n-a.n||b.v-a.v):b.v-a.v));
+  UI.groups=plan.groups.map(g=>g.cards.map(c=>c.id));
+  UI.sortTypes=Object.fromEntries(plan.groups.map(g=>[g.cards.map(c=>c.id).sort((a,b)=>a-b).join(','),g.type]));
+  UI.sel.clear();UI.hints=null;
+  if(!quiet){render();toast((LANG==='zh'?`保留 ${plan.bombs} 组炸弹、${plan.straightFlushes} 组同花顺；普通顺子放最右。`:`${plan.bombs} bombs / ${plan.straightFlushes} straight flushes; mixed-suit straights on right.`),2400);}
+}
+function onSF() {
+  if (!UI.sfs || UI.sfsKey !== S.hands[ME].length) { UI.sfs = findSFs(S.hands[ME], S.level); UI.sfi = -1; UI.sfsKey = S.hands[ME].length; }
+  if (!UI.sfs.length) { toast(T('noSF')); return; }
+  UI.sfi = (UI.sfi + 1) % UI.sfs.length;
+  const sf = UI.sfs[UI.sfi];
+  UI.sel = new Set(sf.cards.map(c => c.id));
+  render();
+  toast(T('sfPick', UI.sfi + 1, UI.sfs.length, sf.miss), 1600);
+}
+function onGroup() {
+  if (!UI.sel.size) { toast(T('groupFirst')); return; }
+  const ids = [...UI.sel];
+  UI.groups = UI.groups.map(g => g.filter(id => !UI.sel.has(id))).filter(g => g.length);
+  UI.groups.push(ids); UI.sel.clear(); render();
+}
+function onReset() { UI.groups = []; UI.sel.clear(); UI.hints = null; UI.hi = -1; UI.sfs = null; render(); toast(T('resetDone'), 900); }
+
+// ================= 联机 =================
+function normSrv(s) { s = (s || '').trim().replace(/\/+$/, ''); if (!s) return ''; if (!/^(https?|wss?):\/\//.test(s)) s = 'https://' + s; return s; }
+function wsBase() { const s = normSrv(NET.srv); return s.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:'); }
+function shareLink() {
+  const u = location.origin === 'null' || location.protocol === 'file:' ? location.href.split('?')[0] : location.origin + location.pathname;
+  return `${u}?room=${NET.room}&srv=${encodeURIComponent(NET.srv.replace(/^https:\/\//, ''))}`;
+}
+function connect() {
+  if (NET.ws) { try { NET.ws.onclose = null; NET.ws.close(); } catch (e) {} }
+  let ws;
+  try { ws = new WebSocket(`${wsBase()}/room/${NET.room}?cid=${NET.cid}` + (MODE === 'host' ? `&host=1&key=${NET.key}` : '')); }
+  catch (e) { NET.status = 'badAddr'; renderNet(); return; }
+  NET.ws = ws;
+  clearTimeout(NET.slowT);
+  NET.slowT = setTimeout(() => { if (NET.ws === ws && ws.readyState !== 1) { NET.status = 'cantConn'; renderNet(); renderLobby(); testServer(true); } }, 8000);
+  ws.onopen = () => { NET.retry = 0; NET.status = ''; NET.testMsg = ''; renderLobby(); if (MODE === 'guest') netSend({t: 'hello', name: myName}); else hostBroadcastSoon(); renderNet(); };
+  ws.onmessage = e => {
+    if (e.data === 'pong') return;
+    let d; try { d = JSON.parse(e.data); } catch (err) { return; }
+    MODE === 'host' ? hostOnMsg(d) : guestOnMsg(d.m || {});
+  };
+  ws.onclose = e => {
+    if (NET.ws !== ws) return;
+    renderNet();
+    if (e.code === 4000) { NET.status = 'elsewhere'; renderNet(); return; }
+    if (e.code === 4003) { NET.status = 'notHost'; renderNet(); return; }
+    if (NET.retry >= 2 && NET.status !== 'cantConn') { NET.status = 'cantConn'; renderLobby(); testServer(true); }
+    setTimeout(() => { if (NET.ws === ws) connect(); }, Math.min(8000, 700 * 2 ** NET.retry++));
+  };
+}
+setInterval(() => { if (NET.ws && NET.ws.readyState === 1) NET.ws.send('ping'); renderNet(); }, 20000);
+async function testServer(quiet) {
+  const base = normSrv(NET.srv);
+  let msg;
+  try {
+    const ctl = new AbortController(); setTimeout(() => ctl.abort(), 8000);
+    const r = await fetch(base + '/relay', {signal: ctl.signal, cache: 'no-store'});
+    const t = await r.text();
+    msg = t.trim() === 'guandan relay ok' ? T('srvOk') : T('srvNotRelay');
+  } catch (e) { msg = T('srvFail'); }
+  NET.testMsg = msg; renderLobby();
+  if (!quiet) toast(msg, 3000);
+  return msg;
+}
+function netSend(m, to) { if (NET.ws && NET.ws.readyState === 1) NET.ws.send(JSON.stringify(MODE === 'host' ? {to: to || '*', m} : {m})); }
+
+// ----- 房主 -----
+function seatOfCid(cid) { return SEATS ? SEATS.findIndex(s => s.cid === cid && s.kind === 'remote') : -1; }
+function emptySeat() { return {kind: 'empty', name: '', cid: null, online: false}; }
+function createRoom() {
+  const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  NET.room = Array.from({length: 6}, () => A[Math.random() * A.length | 0]).join('');
+  NET.key = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  store.set('gd_host', {room: NET.room, key: NET.key, srv: NET.srv});
+  MODE = 'host'; ME = 0; NET.started = false; NET.people = {};
+  SEATS = [{kind: 'local', name: myName || T('hostDefault'), cid: NET.cid, online: true}, emptySeat(), emptySeat(), emptySeat()];
+  try { history.replaceState(null, '', shareLink()); } catch (e) {}
+  connect(); showLobby();
+}
+function resumeHost(h, g) {
+  MODE = 'host'; NET.room = h.room; NET.key = h.key; NET.srv = h.srv || NET.srv;
+  if (g && g.room === h.room) {
+    SEATS = g.seats; NET.started = g.started; NET.people = {};
+    SEATS.forEach(s => { if (s.kind === 'remote') s.online = false; });
+    ME = SEATS.findIndex(s => s.kind === 'local');
+    if (g.S) { S = g.S; UI.phase = g.phase || 'play'; }
+  } else { SEATS = [{kind: 'local', name: myName || T('hostDefault'), cid: NET.cid, online: true}, emptySeat(), emptySeat(), emptySeat()]; ME = 0; NET.started = false; NET.people = {}; }
+  connect();
+  if (!NET.started) { showLobby(); return; }
+  hideLobby(); render();
+  if (S.roundOver) showRoundEnd();
+  else if (S.tribute && !S.tribDone) processReturns();
+  else { UI.phase = 'play'; tick(); }
+}
+let bcT = null;
+function hostBroadcastSoon() { if (MODE !== 'host') return; clearTimeout(bcT); bcT = setTimeout(hostBroadcast, 30); }
+function lobbyMsg() { return {t: 'lobby', room: NET.room, started: NET.started, seats: SEATS, people: Object.entries(NET.people).filter(([c, p]) => p.online && seatOfCid(c) < 0).map(([cid, p]) => ({cid, name: p.name}))}; }
+function viewFor(p) {
+  const TR = S.tribute;
+  return {t: 'state', mySeat: p, seats: SEATS, levels: S.levels, level: S.level, banker: S.banker, round: S.round, turn: S.turn, trick: S.trick,
+    lastAction: S.lastAction, finished: S.finished, played: S.played, log: S.log, roundOver: S.roundOver, result: S.result, gameOver: S.gameOver,
+    counts: S.hands.map(h => h.length), hand: S.hands[p], reveal: S.roundOver ? S.hands : null, busy: !!UI.busy, thinking: UI.thinking,
+    retMe: UI.phase === 'wait' && UI.waitRet === p && !!TR, phaseWait: UI.phase === 'wait' || UI.phase === 'return', fx: NET.fx,
+    dealKey: S.round + ':' + (S.tribDone ? 1 : 0)};
+}
+function hostBroadcast() {
+  if (MODE !== 'host') return;
+  if (!NET.started) { netSend(lobbyMsg(), '*'); renderLobby(); }
+  else {
+    for (const [cid, pp] of Object.entries(NET.people)) {
+      if (!pp.online) continue;
+      const seat = seatOfCid(cid);
+      netSend(seat >= 0 ? viewFor(seat) : lobbyMsg(), cid);
+    }
+  }
+  store.set('gd_hostgame', {room: NET.room, seats: SEATS, started: NET.started, S: NET.started ? S : null, phase: UI.phase});
+}
+function hostOnMsg(d) {
+  if (d.cid === NET.cid) return;
+  if (d.sys === 'join') { NET.people[d.cid] = NET.people[d.cid] || {name: '', online: true}; NET.people[d.cid].online = true; hostBroadcastSoon(); return; }
+  if (d.sys === 'leave') {
+    if (NET.people[d.cid]) NET.people[d.cid].online = false;
+    const s = seatOfCid(d.cid);
+    if (s >= 0 && !NET.started) SEATS[s] = emptySeat();
+    else if (s >= 0) {
+      SEATS[s].online = false;
+      if (NET.started) { if (UI.waitRet === s) processReturns(); else if (S.turn === s && UI.phase === 'play' && !UI.busy) tick(); }
+    }
+    hostBroadcastSoon(); render(); return;
+  }
+  const cid = d.from, m = d.m || {};
+  if (!cid) return;
+  const pp = NET.people[cid] = NET.people[cid] || {name: '', online: true};
+  pp.online = true;
+  if (m.t === 'hello' || m.t === 'name') {
+    pp.name = String(m.name || '').slice(0, 12) || pp.name || T('player');
+    const s = seatOfCid(cid);
+    if (s >= 0) {
+      const wasOff = !SEATS[s].online;
+      SEATS[s].online = true; SEATS[s].name = pp.name;
+      if (NET.started && wasOff && S.turn === s && UI.phase === 'play' && !UI.busy && !S.roundOver) { UI.reqId++; UI.thinking = -1; clearTimeout(timer); tick(); }
+    }
+    hostBroadcastSoon(); render(); return;
+  }
+  if (m.t === 'sit') {
+    if (NET.started || seatOfCid(cid) >= 0) return;
+    const j = m.seat | 0;
+    if (j < 0 || j > 3 || SEATS[j].kind !== 'empty') return;
+    pp.name = String(m.name || pp.name || T('player')).slice(0, 12);
+    SEATS[j] = {kind: 'remote', name: pp.name, cid, online: true};
+    hostBroadcastSoon(); return;
+  }
+  if (!NET.started) return;
+  if (m.t === 'botname') { const j = m.seat | 0; if (SEATS[j] && SEATS[j].kind === 'bot') { SEATS[j].name = String(m.name || '').slice(0, 12) || T('computer'); render(); } return; }
+  const s = seatOfCid(cid);
+  if (s < 0) return;
+  const err = key => netSend({t: 'err', key}, cid);
+  if (m.t === 'ret') {
+    if (UI.waitRet !== s) return;
+    const c = S.hands[s].find(x => x.id === m.id);
+    if (!c || c.r > 10 || isWild(c, S.level)) { err('pickRet2'); hostBroadcastSoon(); return; }
+    const r = S.tribute.rets.find(x => x.from === s && !x.done);
+    S.log = S.log.filter(e => e[0] !== 'lWaitRet'); doReturn(S, r, c); addLog('lRet', {p: s}, {c}, {p: r.to});
+    processReturns(); return;
+  }
+  if (S.turn !== s || UI.phase !== 'play' || UI.busy || S.roundOver) { hostBroadcastSoon(); return; }
+  if (m.t === 'pass') { if (!S.trick) { err('mustPlay'); hostBroadcastSoon(); return; } clearTimeout(timer); act(s, null); return; }
+  if (m.t === 'play') {
+    const ids = Array.isArray(m.ids) ? m.ids : [];
+    const cards = ids.map(id => S.hands[s].find(x => x.id === id));
+    if (!cards.length || !cards.every(Boolean) || new Set(ids).size !== ids.length) { err('notInHand'); hostBroadcastSoon(); return; }
+    const b = bestInterp(analyze(cards, S.level), S.trick ? S.trick.combo : null);
+    if (!b) { err('cantBeat'); hostBroadcastSoon(); return; }
+    clearTimeout(timer); act(s, {...b, cards});
+  }
+}
+function startOnline() {
+  const used = new Set(SEATS.map(s => s.name));
+  const pool = BOTNAMES[LANG === 'en' ? 'en' : 'zh'].filter(n => !used.has(n));
+  SEATS = SEATS.map((s,seat) => s.kind === 'empty' ? {kind: 'bot', name: ['Mr. Q','HH Boy','Prof. Wang','HH Girl'][seat] || pool.shift() || T('computer'), cid: null, online: true} : s);
+  ME = SEATS.findIndex(s => s.kind === 'local');
+  NET.started = true; statPeople();
+  S = newGameState();
+  hideLobby(); closeModal();
+  newRound();
+}
+
+// ----- 玩家（非房主） -----
+function guestOnMsg(m) {
+  if (m.t === 'lobby') {
+    SEATS = m.seats;
+    if (!m.started || seatOfCidG(m.seats) < 0) { NET.lobby = m; showLobby(); }
+    return;
+  }
+  if (m.t === 'hostgone') { NET.status = 'hostGone'; renderNet(); toast(T('hostGoneT'), 2500); return; }
+  if (m.t === 'err') { NET.waiting = false; toast(T(m.key || 'cantBeat')); render(); return; }
+  if (m.t === 'state') applyView(m);
+}
+function seatOfCidG(seats) { return seats.findIndex(s => s.cid === NET.cid && s.kind === 'remote'); }
+function applyView(v) {
+  hideLobby();
+  NET.status = '';
+  const newDeal = v.dealKey !== NET.dealKey;
+  ME = v.mySeat; SEATS = v.seats;
+  Object.assign(S, {level: v.level, levels: v.levels, banker: v.banker, round: v.round, turn: v.turn, trick: v.trick, lastAction: v.lastAction,
+    finished: v.finished, played: v.played, log: v.log || [], roundOver: v.roundOver, result: v.result, gameOver: v.gameOver, tribute: null});
+  S.hands = [0, 1, 2, 3].map(p => p === ME ? v.hand : (v.reveal ? v.reveal[p] : Array.from({length: v.counts[p]}, (_, i) => ({id: -1000 - p * 40 - i, r: 0, s: -1}))));
+  UI.busy = v.busy; UI.thinking = v.thinking; NET.waiting = false;
+  UI.phase = v.retMe ? 'return' : v.phaseWait ? 'wait' : 'play';
+  if (newDeal) { NET.dealKey = v.dealKey; UI.hints = null; UI.sfs = null; if (UI.set.autoSort) smartSort(true); }
+  if (v.fx && v.fx.seq > NET.lastFx) { if (NET.lastFx && v.fx.key) { const t = logLine([v.fx.key, ...(v.fx.args || [])]); v.fx.boom ? boom(t) : toast(t); } NET.lastFx = v.fx.seq; }
+  statPeople();
+  if (!S.roundOver && $('modal').classList.contains('show') && NET.shownEnd >= 0) { closeModal(); NET.shownEnd = -1; }
+  UI.hints = null;
+  render();
+  if (S.roundOver && NET.shownEnd !== S.round) { NET.shownEnd = S.round; statRound(); setTimeout(() => { if (S.roundOver) showRoundEnd(); }, 2800); }
+  // 要不起自动跳过
+  const k = S.round + ':' + S.played.length + ':' + S.turn;
+  if (myTurnNow() && S.trick && UI.set.autoPass && NET.autoSeq !== k && genPlays(S.hands[ME], S.level, S.trick.combo).length === 0) {
+    NET.autoSeq = k; toast(T('noBeat'), 700);
+    setTimeout(() => { if (NET.autoSeq === k && myTurnNow()) { netSend({t: 'pass'}); NET.waiting = true; render(); } }, sp().auto);
+  }
+}
+function joinRoom(room, srv) {
+  MODE = 'guest'; NET.room = room; if (srv) NET.srv = srv;
+  S = newGameState(); blank();
+  SEATS = [emptySeat(), emptySeat(), emptySeat(), emptySeat()];
+  ME = 0; NET.lobby = {seats: SEATS, people: [], started: false};
+  connect(); showLobby();
+}
+
+// ----- 房间界面 -----
+function showLobby() { $('lobby').classList.add('show'); renderLobby(); }
+function hideLobby() { $('lobby').classList.remove('show'); }
+function renderLobby() {
+  if (!$('lobby').classList.contains('show')) return;
+  const host = MODE === 'host';
+  const seats = host ? SEATS : (NET.lobby && NET.lobby.seats) || SEATS;
+  const people = host ? lobbyMsg().people : (NET.lobby && NET.lobby.people) || [];
+  const started = host ? NET.started : NET.lobby && NET.lobby.started;
+  const mySeat = host ? SEATS.findIndex(s => s.kind === 'local') : seatOfCidG(seats);
+  const ok = NET.ws && NET.ws.readyState === 1;
+  const cell = j => {
+    const s = seats[j], team = j % 2 === 0 ? 'ta' : 'tb';
+    const me = j === mySeat, pick = NET.pick === j;
+    if (s.kind === 'empty') return `<button class="st empty ${team} ${pick ? 'pick' : ''}" data-seat="${j}"><span>${T('seat', j + 1)}</span><small>${host || mySeat < 0 ? T('emptyTap') : T('empty')}</small></button>`;
+    const tag = s.kind === 'local' ? T('hostTag') : s.kind === 'bot' ? 'Bot' : s.online ? '' : T('offline');
+    return `<button class="st ${team} ${pick ? 'pick' : ''}" data-seat="${j}"><small>${T('seat', j + 1)}${me ? ' · ' + T('you') : ''}</small><span class="nm2">${esc(s.name || T('player'))}</span><small>${tag}</small></button>`;
+  };
+  const tip = host ? (NET.pick !== null ? T('tipSwap2') : T('tipSwap')) : (mySeat < 0 ? (started ? T('tipFull') : T('tipSit')) : T('tipWait'));
+  const st = ok ? T('srvConnected') : NET.status === 'cantConn' ? `<b style="color:#c8322b">${T('srvCant')}</b>: ${esc(NET.testMsg || '…')} (${esc(NET.srv)})` : T('srvConnecting');
+  $('lbox').innerHTML = `<h2>${T('room', NET.room)}</h2>
+    <p class="note">${st} · ${T('teams')}</p>
+    <div class="lk"><input id="lkIn" readonly value="${esc(shareLink())}"><button class="bt" id="lkCp">${T('copy')}</button></div>
+    <div class="nmrow"><span>${T('yourName')}</span><input id="nmIn" maxlength="12" value="${esc(myName)}" placeholder="${T('namePh')}"></div>
+    <div class="cross"><div></div>${cell(2)}<div></div>${cell(3)}<div class="mid">${T('table')}</div>${cell(1)}<div></div>${cell(0)}<div></div></div>
+    <p class="note">${tip}</p>
+    ${people.length ? `<p class="note">${host ? T('unseatedHost') : T('unseated')}:</p><div class="chips">${people.map(p => `<span class="chip ${NET.pick === 'c:' + p.cid ? 'pick' : ''}" data-cid="${p.cid}">${esc(p.name || T('player'))}</span>`).join('')}</div>` : ''}
+    <div class="row"><button class="bt" id="lbLeave">${T('leaveSolo')}</button>${host ? `<button class="bt main" id="lbStart">${T('start')}</button>` : ''}</div>
+    ${host ? `<p class="note">${T('botFill')}</p>` : ''}`;
+  $('lkCp').onclick = () => { const i = $('lkIn'); i.select(); const done = () => toast(T('copied')); try { navigator.clipboard.writeText(i.value).then(done, () => { document.execCommand('copy'); done(); }); } catch (e) { document.execCommand('copy'); done(); } };
+  $('nmIn').onchange = () => {
+    myName = $('nmIn').value.trim().slice(0, 12); store.set('gd_name', myName);saveSharedHHNames();
+    if (host) { SEATS[ME].name = myName || T('hostDefault'); hostBroadcastSoon(); renderLobby(); } else netSend({t: 'name', name: myName});
+  };
+  $('lbLeave').onclick = leaveOnline;
+  if (host) $('lbStart').onclick = () => { if (!myName) { myName = $('nmIn').value.trim(); } startOnline(); };
+  document.querySelectorAll('#lbox [data-seat]').forEach(b => b.onclick = () => onSeatClick(+b.dataset.seat));
+  document.querySelectorAll('#lbox [data-cid]').forEach(b => b.onclick = () => { if (!host) return; NET.pick = NET.pick === 'c:' + b.dataset.cid ? null : 'c:' + b.dataset.cid; renderLobby(); });
+}
+function onSeatClick(j) {
+  if (MODE === 'guest') {
+    const seats = (NET.lobby && NET.lobby.seats) || SEATS;
+    if (seatOfCidG(seats) >= 0 || seats[j].kind !== 'empty') return;
+    myName = $('nmIn').value.trim().slice(0, 12) || myName || T('player'); store.set('gd_name', myName);saveSharedHHNames();
+    netSend({t: 'sit', seat: j, name: myName}); return;
+  }
+  if (NET.pick === null) { if (SEATS[j].kind !== 'empty') { NET.pick = j; renderLobby(); } return; }
+  if (typeof NET.pick === 'string') {
+    const cid = NET.pick.slice(2), pp = NET.people[cid];
+    if (pp && SEATS[j].kind !== 'local') SEATS[j] = {kind: 'remote', name: pp.name || T('player'), cid, online: true};
+  } else if (NET.pick !== j) { const t = SEATS[NET.pick]; SEATS[NET.pick] = SEATS[j]; SEATS[j] = t; }
+  NET.pick = null;
+  ME = SEATS.findIndex(s => s.kind === 'local');
+  hostBroadcastSoon(); renderLobby();
+}
+function leaveOnline() {
+  if (NET.ws) { try { NET.ws.onclose = null; NET.ws.close(); } catch (e) {} }
+  NET.ws = null;
+  if (MODE === 'host') { store.set('gd_host', null); store.set('gd_hostgame', null); }
+  MODE = 'offline'; ME = 0; SEATS = null; NET.started = false;
+  try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  hideLobby(); closeModal(); clearTimeout(timer);
+  loadOffline(); newRound();
+}
+function roomInfo() {
+  const rows = [0, 1, 2, 3].map(p => `<b>${T('seat', p + 1)}</b><span>${esc(nameOf(p))}${p === ME ? ' (' + T('you') + ')' : ''} ${tagOf(p)}</span>`).join('');
+  modal(`<h2>${T('room', NET.room)}</h2><div class="ord">${rows}</div>
+    <div class="lk"><input id="lkIn2" readonly value="${esc(shareLink())}"></div>
+    <p class="note">${MODE === 'host' ? T('hostNote') : T('guestNote')}</p>
+    <div class="row"><button class="bt" id="riLeave">${T('leaveRoom')}</button><button class="bt main" id="riOk">${T('ok')}</button></div>`);
+  $('riOk').onclick = closeModal;
+  $('riLeave').onclick = leaveOnline;
+}
+function startScreen() {
+  const srvSet = !!NET.srv;
+  modal(`<h2>${T('title')}</h2><p class="note">${T('howPlay')}</p>
+    ${location.protocol === 'file:' ? `<p class="note" style="color:#a5291d;font-weight:700">${LANG==='zh'?'提示：直接打开本地 HTML 不会产生可分享的网址。联网邀请需先将 HHgames 部署到公开网站。':'Online invites require hosting HHgames at a public HTTPS URL; local file links cannot be shared.'}</p>` : ''}
+    <div class="choice">
+      <button class="bt main" id="ssOff">${T('solo')}</button>
+      <button class="bt" id="ssOn" ${IN_CLAUDE ? 'disabled' : ''}>${T('onlineBtn')}</button>
+    </div>
+    ${IN_CLAUDE ? `<p class="note">${T('onlineGh')}</p>` : `
+    <div class="nmrow"><span>${T('yourName')}</span><input id="ssName" maxlength="12" value="${esc(myName)}" placeholder="${T('namePh')}"></div>
+    <div class="srv"><span>${T('server')}</span><input id="ssSrv" value="${esc(NET.srv)}" placeholder="xxx.workers.dev"></div>
+    ${srvSet ? '' : `<p class="note">${T('needSrv')}</p>`}`}
+    <div class="row"><button class="bt" id="ssLang">${LANG === 'zh' ? 'English' : '中文'}</button></div>`);
+  $('ssLang').onclick = () => { setLang(LANG === 'zh' ? 'en' : 'zh'); startScreen(); };
+  $('ssOff').onclick = () => { closeModal(); clearTimeout(timer); loadOffline(); newRound(); };
+  if (!IN_CLAUDE) $('ssOn').onclick = () => {
+    myName = $('ssName').value.trim().slice(0, 12); store.set('gd_name', myName);saveSharedHHNames();
+    const s = $('ssSrv').value.trim().replace(/\/+$/, '');
+    if (!s) { toast(T('fillSrv')); return; }
+    NET.srv = s; store.set('gd_srv', s);
+    closeModal(); createRoom();
+  };
+}
+// ----- 语言 -----
+const BTNSCALE = {normal: 1, large: 1.25, xl: 1.5};
+function applyBtnSize() { document.documentElement.style.setProperty('--bs', BTNSCALE[UI.set.btnSize] || 1); }
+function setLang(l) {
+  LANG = l; UI.set.lang = l; store.set('gd_set', UI.set);
+  document.documentElement.lang = l === 'zh' ? 'zh-CN' : 'en';
+  document.querySelectorAll('[data-t]').forEach(e => e.textContent = T(e.dataset.t));
+  document.querySelectorAll('[data-tt]').forEach(e => e.title = T(e.dataset.tt));
+  document.title = 'HHgames · ' + T('title');
+  if (S.hands) render();
+  renderLobby();
+}
+// ----- 电脑玩家改名 -----
+function renameBot(p) {
+  if (!isBotSeat(p)) return;
+  const cur = MODE === 'offline' ? (BOTNM[p] || '') : SEATS[p].name;
+  modal(`<h2>${T('rename', esc(nameOf(p)))}</h2>
+    <div class="nmrow"><input id="rnIn" maxlength="12" value="${esc(cur)}" placeholder="${esc(MODE === 'offline' ? T('rel')[rel(p)] : '')}"></div>
+    <p class="note">${T('namesNote')}</p>
+    <div class="row"><button class="bt" id="rnNo">${T('cancel')}</button><button class="bt main" id="rnOk">${T('save')}</button></div>`);
+  setTimeout(() => { try { $('rnIn').focus(); $('rnIn').select(); } catch (e) {} }, 50);
+  $('rnNo').onclick = closeModal;
+  $('rnOk').onclick = () => { applyBotName(p, $('rnIn').value.trim().slice(0, 12)); closeModal(); };
+  $('rnIn').onkeydown = e => { if (e.key === 'Enter') $('rnOk').click(); };
+}
+function applyBotName(p, name) {
+  if (MODE === 'offline') { BOTNM[p] = name; store.set('gd_botnames', BOTNM);saveSharedHHNames(); render(); return; }
+  if (MODE === 'guest') { netSend({t: 'botname', seat: p, name}); return; }
+  if (SEATS[p] && SEATS[p].kind === 'bot') { SEATS[p].name = name || T('computer'); render(); }
+}
+// ----- 游戏统计（只增不减） -----
+const STATS = Object.assign({rounds: 0, ms: 0, months: {}, people: []}, store.get('gd_stats', {}));
+let statLast = Date.now();
+const monthKey = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
+function playingNow() { return !!(S.hands && S.hands.some(h => h.length) && !S.roundOver && !$('lobby').classList.contains('show') && !$('ssOff')); }
+function statTick() {
+  const now = Date.now(), dt = Math.min(Math.max(0, now - statLast), 30000); statLast = now;
+  if (document.visibilityState !== 'visible' || !playingNow()) return;
+  STATS.ms += dt; const k = monthKey(); STATS.months[k] = (STATS.months[k] || 0) + dt;
+  store.set('gd_stats', STATS);
+}
+setInterval(statTick, 10000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') statLast = Date.now(); else statTick(); });
+function statRound() { const k = 'r' + S.round + ':' + (MODE === 'offline' ? 'o' : NET.room); if (STATS.lastR === k) return; STATS.lastR = k; STATS.rounds++; store.set('gd_stats', STATS); }
+function statPeople() {
+  if (!SEATS) return;
+  let ch = false;
+  for (const s of SEATS) if (s && s.cid && s.cid !== NET.cid && (s.kind === 'remote' || s.kind === 'local') && !STATS.people.includes(s.cid)) { STATS.people.push(s.cid); ch = true; }
+  if (ch) store.set('gd_stats', STATS);
+}
+function fmtHM(ms) { const m = Math.floor(ms / 60000); return T('hm', Math.floor(m / 60), m % 60); }
+function showStats() {
+  statTick();
+  modal(`<h2>${T('stats')}</h2><div class="stat">
+    <b>${T('stRounds')}</b><span>${STATS.rounds}</span>
+    <b>${T('stTime')}</b><span>${fmtHM(STATS.ms)}</span>
+    <b>${T('stMonth')}</b><span>${fmtHM(STATS.months[monthKey()] || 0)}</span>
+    <b>${T('stPeople')}</b><span>${STATS.people.length}</span></div>
+    <p class="note">${T('stNote')}</p>
+    <div class="row"><button class="bt main" id="stOk">${T('ok')}</button></div>`);
+  $('stOk').onclick = closeModal;
+}
+// 点选 / 滑动多选 / 双击选整列
+(() => {
+  const el = $('hand'); let drag = null, lastTap = {id: -1, t: 0};
+  const idAt = (x, y) => { const e = document.elementFromPoint(x, y); const c = e && e.closest('.card'); return c ? +c.dataset.id : null; };
+  el.addEventListener('pointerdown', e => {
+    const id = idAt(e.clientX, e.clientY);
+    if (id === null) { if (UI.sel.size) { UI.sel.clear(); renderHand(); } return; }
+    e.preventDefault();
+    const now = Date.now();
+    if (lastTap.id === id && now - lastTap.t < 320) {
+      const col = UI.cols.find(c => c.cards.some(x => x.id === id));
+      UI.sel.has(id) ? UI.sel.delete(id) : UI.sel.add(id);
+      const all = col.cards.every(x => UI.sel.has(x.id));
+      col.cards.forEach(x => all ? UI.sel.delete(x.id) : UI.sel.add(x.id));
+      lastTap = {id: -1, t: 0}; renderHand(); return;
+    }
+    lastTap = {id, t: now};
+    const on = !UI.sel.has(id);
+    on ? UI.sel.add(id) : UI.sel.delete(id);
+    drag = {on, seen: new Set([id]), x: e.clientX, y: e.clientY};
+    // 按住不动约 0.4 秒：选中这一整列
+    const d0 = drag;
+    d0.hold = setTimeout(() => {
+      if (drag !== d0 || d0.seen.size > 1) return;
+      const col = UI.cols.find(c => c.cards.some(x => x.id === id));
+      if (col) { col.cards.forEach(x => UI.sel.add(x.id)); d0.held = true; renderHand(); if (navigator.vibrate) try { navigator.vibrate(15); } catch (er) {} }
+    }, 420);
+    renderHand();
+  });
+  window.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const id = idAt(e.clientX, e.clientY);
+    if (Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y) > 10) clearTimeout(drag.hold);
+    if (id === null || drag.seen.has(id) || drag.held) return;
+    drag.seen.add(id); drag.on ? UI.sel.add(id) : UI.sel.delete(id); renderHand();
+  });
+  const end = () => { if (drag) clearTimeout(drag.hold); drag = null; };
+  window.addEventListener('pointerup', end);
+  window.addEventListener('pointercancel', end);
+  el.addEventListener('contextmenu', e => e.preventDefault());
+})();
+
+
+// ------ HHgames 反馈：导出所有可复现的本地决策现场 ------
+const HH_FEEDBACK_VERSION='HHgames-Guandan-feedback-v2';
+function hhFeedbackState(){
+ const copy=deepClone(S),which=MODE==='guest'?'guest-masked':MODE;
+ return {schema:HH_FEEDBACK_VERSION,version:APPVER,exportedAt:new Date().toISOString(),game:'掼蛋',mode:which,
+  language:LANG,playerSeat:ME,players:[0,1,2,3].map(p=>({seat:p,name:nameOf(p),bot:isBotSeat(p),team:p%2})),
+  config:deepClone(UI.set),level:S.level,round:S.round,phase:UI.phase,
+  snapshot:copy,actions:deepClone(HH_DIAG),handGroups:deepClone(UI.groups),selectedCardIds:[...UI.sel],
+  viewport:{width:innerWidth,height:innerHeight},comment:'',focusMove:HH_DIAG.length-1,
+  privacyNote:MODE==='guest'?'Guest state only includes visible or masked cards; host retains the full deal.':'Includes every hidden hand and full private game state; share only intentionally.'};
+}
+function hhFeedbackFile(){
+ const report=deepClone(FEEDBACK_REPORT||hhFeedbackState());
+ report.comment=($('hhComment')?.value||'').slice(0,5000);
+ const idx=$('feedbackFocus')?.value;
+ if(idx!==undefined&&idx!==''){report.focusMove=Number(idx);report.focusAction=report.actions[Number(idx)]||null;}
+ return JSON.stringify(report,null,2);
+}
+function hhDownload(){const blob=new Blob([hhFeedbackFile()],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='HHgames-Guandan-feedback-'+new Date().toISOString().replace(/[:.]/g,'-')+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);toast(LANG==='zh'?'反馈现场已下载。请上传到 ChatGPT。':'Report saved. Upload it to ChatGPT.');}
+async function hhCopy(){const str=hhFeedbackFile();try{await navigator.clipboard.writeText(str);toast(LANG==='zh'?'已复制，粘贴到 ChatGPT 即可。':'Copied. Paste in ChatGPT.');return true}catch(e){const ta=document.createElement('textarea');ta.value=str;ta.style.cssText='position:fixed;top:-9999px;left:-9999px';document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();if(!ok)toast(LANG==='zh'?'复制失败，请下载 JSON。':'Copy failed; download JSON.');return ok;}}
+function hhOpenFeedback(){
+ if(FEEDBACK_PAUSED)return;
+ // Capture *before* changing the pending bot decision. This preserves the exact view.
+ FEEDBACK_REPORT=hhFeedbackState();FEEDBACK_PAUSED=true;
+ clearTimeout(timer);timer=null;UI.reqId++;UI.pending=null;
+ const reports=FEEDBACK_REPORT.actions;
+ const rows=reports.map((a,i)=>({a,i})).filter(o=>o.a.bot).slice(-30).reverse();
+ const choices=rows.map(({a,i})=>`<option value="${i}">${esc(nameOf(a.player))} · ${esc(a.action.type==='pass'?'不出':a.action.type)} · #${i+1} (${esc(a.at.slice(11,19))})</option>`).join('');
+ modal(`<h2>${LANG==='zh'?'反馈 / Bug 报告':'Feedback / Bug report'}</h2><p class="note">${LANG==='zh'?'游戏已暂停；当前牌局、所有四家手牌、出牌前局面及机器人动作已保留。':'Game paused. Current deal, all available hands and prior bot decisions are captured.'}</p>
+  <label>${LANG==='zh'?'重点查看哪一次机器人出牌？':'Which bot move was wrong?'} <select class="hh-input" id="feedbackFocus">${choices||'<option value="">—</option>'}</select></label>
+  <label style="display:block">${LANG==='zh'?'补充说明（可不填）':'Comment (optional)'}<textarea class="hh-modal-textarea" id="hhComment" placeholder="${LANG==='zh'?'例如：Prof. Wang 不应拆这组炸弹 / 应该帮队友…':'Example: Prof. Wang should not have broken a bomb...'}"></textarea></label>
+  <p class="hh-privacy">${LANG==='zh'?'隐私：JSON 包含隐藏手牌、玩家名字、历史动作和底层规则状态。除非你自行分享，否则不会自动上传。':'Privacy: JSON contains hidden hands, names and history; nothing is automatically uploaded.'}</p>
+  <div class="hh-actions"><button class="bt main" id="hhSaveReport">${LANG==='zh'?'下载完整反馈 JSON':'Download full JSON'}</button><button class="bt" id="hhCopyReport">${LANG==='zh'?'复制反馈':'Copy report'}</button><button class="bt" id="hhChatReport">${LANG==='zh'?'复制并打开 ChatGPT':'Copy & open ChatGPT'}</button><button class="bt" id="hhResume">${LANG==='zh'?'继续游戏':'Resume'}</button></div>`);
+ render();
+ $('hhSaveReport').onclick=hhDownload;$('hhCopyReport').onclick=hhCopy;
+ $('hhChatReport').onclick=async()=>{if(await hhCopy())window.open('https://chatgpt.com/','_blank','noopener')};
+ $('hhResume').onclick=closeModal;
+}
+$('bFeedback').onclick=hhOpenFeedback;
+window.HHGuandanDebug={getState:()=>S,getMode:()=>MODE,smartPlan,smartSort,openFeedback:hhOpenFeedback,exportFeedback:hhFeedbackState,getHandGroups:()=>UI.groups,getColumns:columns,gameVersion:APPVER};
+
+$('bPlay').onclick = onPlay; $('bPass').onclick = onPass; $('bHint').onclick = onHint;
+$('bSmart').onclick = () => smartSort(false); $('bSF').onclick = onSF; $('bGroup').onclick = onGroup; $('bReset').onclick = onReset;
+$('bTrack').onclick = () => { UI.set.tracker = !UI.set.tracker; store.set('gd_set', UI.set); render(); };
+$('net').onclick = roomInfo;
+$('modal').addEventListener('click', e => { if (e.target.id === 'modal' && !S.roundOver && !$('ssOff')) closeModal(); });
+document.addEventListener('keydown', e => {
+  if ($('modal').classList.contains('show') || $('lobby').classList.contains('show')) return;
+  if (e.key === 'Enter') onPlay(); else if (e.key === ' ') { e.preventDefault(); onPass(); }
+  else if (e.key === 'h' || e.key === 'H') onHint(); else if (e.key === 's' || e.key === 'S') smartSort(false);
+});
+$('bSet').onclick = () => {
+  const s = UI.set, guest = MODE === 'guest';
+  const bots = [0, 1, 2, 3].filter(isBotSeat);
+  modal(`<div class="mhead"><h2>${T('settings')}</h2><button class="bt main" id="mOk2">${T('ok')}</button></div>
+  <p>${T('setLang')}</p><div class="seg"><button class="bt ${LANG === 'zh' ? 'main' : ''}" data-lg="zh">中文</button><button class="bt ${LANG === 'en' ? 'main' : ''}" data-lg="en">English</button></div>
+  ${guest ? `<p class="note">${T('setCpuHost')}</p>` : `
+  <p>${T('setDiff')}</p><div class="seg">${['normal', 'hard', 'master'].map(k => `<button class="bt ${s.diff === k ? 'main' : ''}" data-df="${k}">${DIFFCN[k]}</button>`).join('')}</div>
+  <p style="font-size:12px;color:#555">${T('setDiffNote')}</p>
+  <p>${T('setSpeed')}</p><div class="seg">${['fast', 'mid', 'slow', 'slower'].map(k => `<button class="bt ${s.speed === k ? 'main' : ''}" data-sp="${k}">${T('speed')[k]}</button>`).join('')}</div>`}
+  <p>${T('setLayout')}</p><div class="seg">${['auto', 'big', 'small'].map(k => `<button class="bt ${(s.layout || 'auto') === k ? 'main' : ''}" data-ly="${k}">${T('layout')[k]}</button>`).join('')}</div>
+  <p>${T('setBtn')}</p><div class="seg">${['normal', 'large', 'xl'].map(k => `<button class="bt ${(s.btnSize || 'normal') === k ? 'main' : ''}" data-bs="${k}">${T('btn')[k]}</button>`).join('')}</div>
+  <label><input type="checkbox" id="oAuto" ${s.autoPass ? 'checked' : ''}> ${T('setAuto')}</label>
+  <label><input type="checkbox" id="oSort" ${s.autoSort ? 'checked' : ''}> ${T('setSort')}</label>
+  ${bots.length && S.hands && (MODE === 'offline' || NET.started) ? `<p>${T('names')}</p><div class="chips">${bots.map(p => `<span class="chip" data-rn="${p}">${esc(nameOf(p))} ✎</span>`).join('')}</div>` : ''}
+  ${IN_CLAUDE ? '' : `<div class="srv"><span>${T('setSrv')}</span><input id="oSrv" value="${esc(NET.srv)}" placeholder="xxx.workers.dev"><button class="bt" id="oTest">${T('test')}</button></div>`}
+  <p class="note">${T('verLine', APPVER, innerWidth + '×' + innerHeight, document.body.classList.contains('big') ? T('layout').big : T('layout').small)}</p>
+  <div class="row"><button class="bt" id="mStats">${T('stats')}</button>${MODE === 'offline' ? `<button class="bt" id="mMode">${T('modeBtn')}</button>` : `<button class="bt" id="mLeave">${T('leaveRoom')}</button>`}${guest ? '' : `<button class="bt" id="mRestart">${T('restart')}</button>`}<button class="bt main" id="mOk">${T('ok')}</button></div>`);
+  document.querySelectorAll('[data-lg]').forEach(b => b.onclick = () => { setLang(b.dataset.lg); $('bSet').onclick(); });
+  document.querySelectorAll('[data-df]').forEach(b => b.onclick = () => { s.diff = b.dataset.df; document.querySelectorAll('[data-df]').forEach(x => x.classList.toggle('main', x === b)); });
+  document.querySelectorAll('[data-sp]').forEach(b => b.onclick = () => { s.speed = b.dataset.sp; document.querySelectorAll('[data-sp]').forEach(x => x.classList.toggle('main', x === b)); });
+  document.querySelectorAll('[data-ly]').forEach(b => b.onclick = () => { s.layout = b.dataset.ly; store.set('gd_set', s); sizeVars(); render(); document.querySelectorAll('[data-ly]').forEach(x => x.classList.toggle('main', x === b)); });
+  document.querySelectorAll('[data-bs]').forEach(b => b.onclick = () => { s.btnSize = b.dataset.bs; store.set('gd_set', s); applyBtnSize(); render(); document.querySelectorAll('[data-bs]').forEach(x => x.classList.toggle('main', x === b)); });
+  document.querySelectorAll('[data-rn]').forEach(b => b.onclick = () => renameBot(+b.dataset.rn));
+  $('mOk').onclick = () => {
+    s.autoPass = $('oAuto').checked; s.autoSort = $('oSort').checked; store.set('gd_set', s);
+    if ($('oSrv')) { const v = $('oSrv').value.trim().replace(/\/+$/, ''); if (v && MODE === 'offline') { NET.srv = v; store.set('gd_srv', v); } }
+    closeModal(); render(); if (MODE !== 'guest' && S.turn === ME) tick();
+  };
+  $('mOk2').onclick = () => $('mOk').click();
+  $('mStats').onclick = showStats;
+  if ($('oTest')) $('oTest').onclick = () => { const v = $('oSrv').value.trim(); if (v) NET.srv = v; testServer(false); };
+  if ($('mMode')) $('mMode').onclick = () => { clearTimeout(timer); startScreen(); };
+  if ($('mLeave')) $('mLeave').onclick = leaveOnline;
+  if ($('mRestart')) $('mRestart').onclick = () => {
+    $('mbox').innerHTML = `<h2>${T('restartQ')}</h2><p>${T('restartNote')}</p><div class="row"><button class="bt" id="mNo">${T('cancel')}</button><button class="bt main" id="mYes">${T('restart')}</button></div>`;
+    $('mNo').onclick = closeModal;
+    $('mYes').onclick = () => { closeModal(); clearTimeout(timer); S = newGameState(); saveGame(); newRound(); };
+  };
+};
+$('bHelp').onclick = () => { modal(T('helpHtml') + `<div class="row"><button class="bt main" id="mOk">${T('ok')}</button></div>`); $('mOk').onclick = closeModal; };
+// 点牌桌上电脑玩家的名字可以改名
+['i1', 'i2', 'i3', 'i0'].forEach(id => $(id).addEventListener('click', () => { const p = +$(id).dataset.seat; if (isBotSeat(p)) renameBot(p); }));
+addEventListener('resize', () => { sizeVars(); render(); renderLobby(); });
+sizeVars();
+applyBtnSize();
+setLang(LANG);
+
+// ---------- 启动 ----------
+(() => {
+  const q = new URLSearchParams(location.search), room = (q.get('room') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const srv = q.get('srv') || '';
+  if (room && !IN_CLAUDE) {
+    const h = store.get('gd_host', null);
+    if (h && h.room === room) { resumeHost(h, store.get('gd_hostgame', null)); return; }
+    joinRoom(room, srv); return;
+  }
+  loadOffline(); render();
+  if (IN_CLAUDE || q.get('mode') === 'offline') newRound(); else startScreen();
+})();
+try { if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !IN_CLAUDE) navigator.serviceWorker.register('sw.js').catch(() => {}); } catch (e) {}
+}
+</script>
+</body>
+</html>

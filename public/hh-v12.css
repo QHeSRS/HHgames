@@ -1,0 +1,5 @@
+/* HHgames 1.2 replay navigation */
+body.playing .top-actions #reviewNextBtn,body.playing .top-actions #reviewCurrentBtn{background:#284e40;color:#f4e6bc;border-color:#88b6a5}
+body.playing .trick-who.review-winner{color:#ffdf86;font-weight:900;text-shadow:0 0 5px #000}
+body.playing .trick-order{box-shadow:0 0 0 1px #f4e7b3,0 1px 4px #0008}
+@media(max-width:650px){body.playing .top-actions #reviewNextBtn,body.playing .top-actions #reviewCurrentBtn{font-size:9px;padding:4px 5px}}

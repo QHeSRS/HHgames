@@ -1,0 +1,20 @@
+/* HHgames v1.7.0: end-of-deal kitty reveal and dealer-only preview */
+.kitty-view{min-width:0;max-width:100%;margin-top:8px}
+.kitty-view-summary{font-size:13px;font-weight:700;margin:4px 0 9px;color:inherit;line-height:1.35}
+.kitty-card-row{display:flex;flex-wrap:wrap;gap:5px;align-items:flex-start;justify-content:flex-start;max-width:100%;}
+.kitty-card-row .playing-card.kitty-reveal-face{position:relative;display:inline-flex!important;flex:0 0 42px;width:42px;min-width:42px;height:61px;margin:0!important;opacity:1!important;transform:none!important;pointer-events:none;border:1px solid #c0c6bd;border-radius:5px;background:#fff;box-shadow:0 2px 5px #0003}
+.kitty-card-row .playing-card.kitty-reveal-face .card-index strong{font-size:15px}
+.kitty-card-row .playing-card.kitty-reveal-face .card-index em{font-size:13px}
+.kitty-card-row .playing-card.kitty-reveal-face .card-center{font-size:19px}
+.kitty-finished{margin-top:9px;padding:9px 12px;border:1px solid #c4aa73;border-radius:11px;background:#fff5d9;color:#263b31;min-width:0}
+.kitty-finished>strong{display:block;font-size:13px}
+body.playing .phase-panel:has(.kitty-finished),body.playing .instruction-panel:has(.kitty-finished){z-index:20}
+body.playing .felt>.instruction-panel:has(.kitty-finished){max-width:min(95%,720px)!important;width:auto!important;max-height:82%;overflow:auto;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;background:#f6f2e6!important;color:#24372c!important;padding:14px!important;box-shadow:0 12px 35px #0008!important}
+body.playing .felt>.instruction-panel:has(.kitty-finished) .phase-text{color:#263b31}
+body.playing .felt>.instruction-panel:has(.kitty-finished) .phase-buttons{margin:7px 0}
+.dialog-body .kitty-view{padding:3px 0}
+.dialog-body .kitty-view-summary{color:#244035}
+@media(max-width:650px){.kitty-card-row{gap:3px}.kitty-card-row .playing-card.kitty-reveal-face{flex-basis:32px;width:32px;min-width:32px;height:47px}.kitty-card-row .playing-card.kitty-reveal-face .card-index strong{font-size:11px}.kitty-card-row .playing-card.kitty-reveal-face .card-index em{font-size:10px}.kitty-card-row .playing-card.kitty-reveal-face .card-center{font-size:14px}.kitty-finished{padding:6px}.kitty-view-summary{font-size:11px}}
+/* Maintain readable end-of-deal results on the light kitty sheet. */
+body.playing .felt>.instruction-panel:has(.kitty-finished) .phase-text strong,
+body.playing .felt>.instruction-panel:has(.kitty-finished) .phase-text p{color:#243b2e!important;opacity:1!important}

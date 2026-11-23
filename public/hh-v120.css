@@ -1,0 +1,12 @@
+/* V1.20: ACTIVE TURN - pulse only the name/info box, never a floating overlay. */
+body.playing .seat-is-turn > .seat-info,
+body.playing .friends-table > .seat.seat-is-turn > .seat-info{
+  outline:2px solid #85efff !important;
+  outline-offset:1px;
+  background:#195b67 !important;
+  box-shadow:0 0 0 2px #102a1d,0 0 10px #74efff91 !important;
+  animation:hh-turn-attention 1.2s ease-in-out infinite alternate;
+}
+body.playing .seat-is-turn .player-name {color:#fff9da!important;text-shadow:0 0 4px #ffe5a7;}
+@keyframes hh-turn-attention {from{box-shadow:0 0 0 1px #64e3ff,0 0 5px #59dfff77;}to{box-shadow:0 0 0 2px #aefff3,0 0 14px #8cfff6dd;}}
+@media(prefers-reduced-motion:reduce){body.playing .seat-is-turn > .seat-info,body.playing .friends-table>.seat.seat-is-turn>.seat-info{animation:none!important}}

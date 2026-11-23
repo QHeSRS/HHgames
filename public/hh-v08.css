@@ -1,0 +1,116 @@
+/* HHgames 0.8: readable right-over-left hand, exposed pile edges, rounded hearts and portraits */
+body.playing .card-pack{isolation:isolate}
+/* Never allow a selected left-hand pile to paint over its right-hand neighbour. */
+body.playing .card-pack.pack-picked{z-index:var(--pile-order)!important}
+body.playing .card-pack .compact-face{background:#fffefa!important;}
+body.playing .card-pack .compact-face.pile-back{
+  border-bottom:2px solid #819e95!important;
+  background:linear-gradient(#fffefb,#e9f0eb)!important;
+  box-shadow:0 1px 0 #355f50a8!important;
+}
+body.playing .card-pack .compact-face.pile-back.is-picked{border-bottom-color:#d6a035!important;background:#fff1c3!important}
+body.playing .card-pack .compact-face.pile-back .card-index,
+body.playing .card-pack .compact-face.pile-back .card-center,
+body.playing .card-pack .compact-face.pile-back .trump-signal{display:none!important}
+body.playing .pack-count{display:none!important}
+body.playing .card-pack .compact-face .card-index{gap:1px;align-items:flex-start}
+body.playing .card-pack .compact-face .card-index strong{font-size:clamp(15px,1.45vw,21px)!important;font-weight:900;letter-spacing:-.5px;line-height:1}
+body.playing .card-pack .compact-face .card-index em{font-size:clamp(14px,1.25vw,19px)!important;line-height:1}
+body.playing .card-pack .compact-face .card-center{font-size:clamp(19px,2vw,32px)!important}
+body.playing .trick-faces .playing-card.mini .card-index strong{font-size:clamp(13px,1.3vw,17px)!important;letter-spacing:-.5px;font-weight:900}
+body.playing .trick-faces .playing-card.mini .card-index em{font-size:clamp(11px,1.05vw,15px)!important}
+body.playing .trick-faces .playing-card.mini .card-center{font-size:clamp(15px,1.35vw,22px)!important}
+/* User-controlled rank scale, applies to both hand and played cards. */
+body.playing[data-card-size="normal"] .card-pack .compact-face .card-index strong{font-size:clamp(13px,1.2vw,18px)!important}
+body.playing[data-card-size="normal"] .trick-faces .playing-card.mini .card-index strong{font-size:clamp(11px,1.1vw,14px)!important}
+body.playing[data-card-size="xlarge"] .card-pack .compact-face .card-index strong{font-size:clamp(17px,1.7vw,24px)!important}
+body.playing[data-card-size="xlarge"] .trick-faces .playing-card.mini .card-index strong{font-size:clamp(15px,1.5vw,20px)!important}
+/* Distinctive rounded red heart glyph; diamond stays angular. */
+.playing-card .heart-symbol,.card-pack .heart-symbol{width:1em;height:1em;vertical-align:-.06em;fill:currentColor;display:inline-block;overflow:visible}
+body.playing .card-pack .compact-face .card-index em:has(.heart-symbol){font-size:clamp(16px,1.3vw,21px)!important}
+body.playing .card-pack .compact-face .card-center:has(.heart-symbol){font-size:clamp(22px,2.1vw,34px)!important}
+body.playing .trick-faces .playing-card.mini .card-center:has(.heart-symbol){font-size:clamp(16px,1.5vw,22px)!important}
+/* A cartoon portrait per SEAT, so display names stay editable without changing the avatar. */
+body.playing .seat .avatar{width:37px;height:37px;overflow:hidden;background:#efe9d5;border:2px solid #e8d8aa;box-shadow:0 2px 6px #06271a99}
+body.playing .seat .avatar.team1{border-color:#f1bc75}
+body.playing .seat .avatar .avatar-photo{width:100%;height:100%;object-fit:cover;object-position:center 33%;border-radius:50%;display:block;pointer-events:none}
+body.playing .seat .avatar.active{outline:2px solid #fae3a0;outline-offset:2px}
+@media (max-width:650px){
+ body.playing .seat .avatar{width:27px!important;height:27px!important;border-width:1px}
+ body.playing .card-pack .compact-face .card-index strong{font-size:16px!important}
+ body.playing[data-card-size="normal"] .card-pack .compact-face .card-index strong{font-size:13px!important}
+ body.playing[data-card-size="xlarge"] .card-pack .compact-face .card-index strong{font-size:18px!important}
+ body.playing .trick-faces .playing-card.mini .card-index strong{font-size:13px!important}
+ body.playing[data-card-size="normal"] .trick-faces .playing-card.mini .card-index strong{font-size:11px!important}
+ body.playing[data-card-size="xlarge"] .trick-faces .playing-card.mini .card-index strong{font-size:16px!important}
+ body.playing .card-pack .compact-face .card-index em:has(.heart-symbol){font-size:15px!important}
+ body.playing .card-pack .compact-face .card-center:has(.heart-symbol){font-size:20px!important}
+}
+@media (max-height:510px){
+ body.playing .seat .avatar{width:24px!important;height:24px!important}
+ body.playing .card-pack .compact-face .card-index strong{font-size:15px!important}
+ body.playing[data-card-size="normal"] .card-pack .compact-face .card-index strong{font-size:12px!important}
+ body.playing[data-card-size="xlarge"] .card-pack .compact-face .card-index strong{font-size:17px!important}
+}
+/* Keep hit targets stationary; a raised pile can be hidden by the next row. */
+body.playing .card-pack:hover,body.playing .card-pack.pack-picked{transform:none!important}
+body.playing .card-pack.pack-picked .compact-face:not(.pile-back){box-shadow:inset 0 0 0 2px #e6ae42!important}
+
+
+/* HHgames 0.9: clearer tractor stacks + Sudoku */
+body.playing .card-pack .compact-face.pile-back{box-shadow:0 1px 0 #355f50a8!important,inset 0 -1px 0 #c9d8d1!important}
+body.playing .card-pack .pile-size-badge{position:absolute;left:4px;top:50%;transform:translateY(-50%);min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:#eef5f1;border:1px solid #9db6ac;color:#1a3328;font-size:11px;line-height:14px;font-weight:800;display:flex;align-items:center;justify-content:center;pointer-events:none;box-shadow:0 1px 2px #0000001c}
+body.playing .card-pack.pack-picked .pile-size-badge{background:#fff1c3;border-color:#e0ac47}
+body.playing[data-card-size="normal"] .card-pack .pile-size-badge{font-size:10px}
+body.playing[data-card-size="xlarge"] .card-pack .pile-size-badge{font-size:12px;min-width:18px;height:18px}
+body.playing .trick-faces .playing-card.mini .card-index strong{font-size:clamp(14px,1.45vw,18px)!important}
+body.playing[data-card-size="xlarge"] .trick-faces .playing-card.mini .card-index strong{font-size:clamp(16px,1.6vw,21px)!important}
+#sudokuView{display:block}.sudoku-lobby{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;align-items:start}.sudoku-card,.sudoku-summary,.sudoku-record-card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}.sudoku-card{padding:18px;display:flex;flex-direction:column;gap:10px}.sudoku-card h3{margin:0;font-size:20px}.sudoku-card p{margin:0;color:#677787;font-size:13px}.sudoku-card .mini-stats{display:flex;gap:8px;flex-wrap:wrap}.sudoku-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#f5f7fa;color:#51616f;font-size:12px}.sudoku-summary{padding:18px}.sudoku-summary h3{margin:0 0 10px}.sudoku-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}.sudoku-summary-item{background:#f8fafc;border:1px solid #e6ebf0;border-radius:12px;padding:10px 12px}.sudoku-summary-item strong{display:block;font-size:17px}.sudoku-summary-item span{color:#738292;font-size:12px}.sudoku-game{display:flex;flex-direction:column;gap:14px}.sudoku-stats{display:flex;flex-wrap:wrap;gap:12px;padding:12px 16px}.sudoku-stat{display:flex;flex-direction:column;gap:2px}.sudoku-stat b{font-size:20px}.sudoku-shell{display:grid;grid-template-columns:78px minmax(0,1fr) 96px;gap:12px;align-items:start}.sudoku-side{display:flex;flex-direction:column;gap:8px}.sudoku-side-title{font-size:12px;color:#74818c;font-weight:700;text-align:center}.sudoku-keypad{display:grid;grid-template-columns:1fr;gap:8px}.sudoku-keypad button{height:44px;border-radius:14px;border:1px solid #cfd8df;background:#fff;font-weight:800;font-size:22px;box-shadow:0 2px 8px #09111a0d}.sudoku-keypad.note button{font-size:21px;background:#f7fafc}.sudoku-center{display:flex;flex-direction:column;gap:12px;align-items:center}.sudoku-board{width:min(100%,720px);aspect-ratio:1/1;display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr);border:2px solid #20262c;border-radius:16px;overflow:hidden;background:#fff}.sudoku-cell{position:relative;border:1px solid #cfd4da;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none}.sudoku-cell.given{background:#f3f5f7}.sudoku-cell.selected{background:#d8efff}.sudoku-cell.peer{background:#f5fbff}.sudoku-cell.same{background:#eef8ff}.sudoku-cell.conflict{background:#ffe4e4}.sudoku-cell .main-digit{font-size:clamp(24px,4.1vw,40px);font-weight:900;line-height:1}.sudoku-cell.given .main-digit{color:#111}.sudoku-cell.user .main-digit{color:#1f6fb3}.sudoku-cell .notes{position:absolute;inset:5px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:1px;font-size:clamp(8px,1.2vw,14px);color:#7a8794}.sudoku-cell.border-r{border-right:2px solid #20262c}.sudoku-cell.border-b{border-bottom:2px solid #20262c}.sudoku-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}.sudoku-hint{margin:0;color:#6a7783;font-size:13px}.sudoku-record-card{padding:16px}.sudoku-records{display:flex;flex-direction:column;gap:6px}.sudoku-record-row,.sudoku-record-head{display:grid;grid-template-columns:56px 1fr 96px 110px;gap:10px;align-items:center}.sudoku-record-head{font-size:12px;color:#7d8894;font-weight:700;padding:0 2px}.sudoku-record-row{padding:8px 10px;border-radius:10px;background:#f8fafc;font-size:13px}.sudoku-empty{padding:14px;color:#7c8892;text-align:center;background:#f8fafc;border-radius:12px}.sudoku-win{background:#eef9f0;border-color:#b7dfbf}@media (max-width:900px){.sudoku-shell{grid-template-columns:64px minmax(0,1fr) 82px}.sudoku-keypad button{height:40px;font-size:20px}.sudoku-record-row,.sudoku-record-head{grid-template-columns:42px 1fr 82px 92px}}@media (max-width:700px){.sudoku-shell{grid-template-columns:54px minmax(0,1fr) 68px;gap:8px}.sudoku-keypad button{height:36px;font-size:18px;border-radius:12px}.sudoku-record-row,.sudoku-record-head{grid-template-columns:36px 1fr 68px 80px;font-size:12px}.sudoku-actions .ui-btn{padding:10px 12px;font-size:12px}}
+/* Sudoku: compact, fixed-viewport landscape table with keypad columns. */
+body.sudoku-active{overflow:hidden}
+body.sudoku-active .shell{max-width:1800px}
+body.sudoku-active .topbar{height:56px;min-height:56px}
+body.sudoku-active .topbar .logo{width:40px;height:40px}
+body.sudoku-active .topbar .brand strong{font-size:20px}
+body.sudoku-active #sudokuView{height:calc(100dvh - 63px);padding:7px 0 0;overflow:hidden}
+body.sudoku-active .sudoku-heading{margin:0 0 3px;min-height:38px;align-items:center}
+body.sudoku-active .sudoku-heading h1{font-size:23px;margin:1px 0}
+body.sudoku-active .sudoku-heading .subcopy,body.sudoku-active .sudoku-heading .eyebrow{display:none}
+body.sudoku-active .sudoku-lobby{max-height:calc(100dvh - 124px);overflow:auto;padding:5px}
+body.sudoku-active .sudoku-game{gap:3px}
+body.sudoku-active .sudoku-stats{padding:2px 9px;min-height:34px;gap:24px;justify-content:center}
+body.sudoku-active .sudoku-stat{display:flex;flex-direction:row;align-items:center;gap:6px}
+body.sudoku-active .sudoku-stat span{font-size:11px;color:#647486}
+body.sudoku-active .sudoku-stat b{font-size:15px}
+body.sudoku-active .sudoku-shell{--sudoku-board-size:min(calc(100dvh - 205px),calc(100vw - 245px),680px);grid-template-columns:clamp(48px,7vw,72px) var(--sudoku-board-size) clamp(52px,8vw,82px);justify-content:center;gap:12px}
+body.sudoku-active .sudoku-board{width:var(--sudoku-board-size);height:var(--sudoku-board-size);max-width:100%;max-height:100%;border-radius:2px}
+body.sudoku-active .sudoku-side{gap:4px}
+body.sudoku-active .sudoku-keypad{gap:4px}
+body.sudoku-active .sudoku-keypad button{height:calc((var(--sudoku-board-size) - 8*4px - 18px)/9);font-size:clamp(18px,2.4vw,27px);border-radius:12px}
+body.sudoku-active .sudoku-center{gap:4px}
+body.sudoku-active .sudoku-actions{gap:5px}
+body.sudoku-active .sudoku-actions .ui-btn{padding:6px 12px;font-size:12px}
+body.sudoku-active .sudoku-hint{font-size:11px;color:#7b8996}
+body.sudoku-active .sudoku-record-card{display:none!important}
+body.sudoku-active .sudoku-cell .main-digit{font-size:clamp(19px,calc(var(--sudoku-board-size) / 16),43px)}
+body.sudoku-active .sudoku-cell .notes{inset:2px;font-size:clamp(8px,calc(var(--sudoku-board-size) / 49),14px)}
+@media (max-width:700px){
+ body.sudoku-active .shell{padding:0 7px}
+ body.sudoku-active .topbar{height:50px;min-height:50px;gap:5px}
+ body.sudoku-active .topbar .brand{margin-right:auto;gap:3px}
+ body.sudoku-active .topbar .brand .logo{width:28px;height:28px}
+ body.sudoku-active .topbar .brand strong{font-size:15px}
+ body.sudoku-active .topbar .brand small{display:none}
+ body.sudoku-active .topbar .top-actions{gap:3px}
+ body.sudoku-active .topbar .ui-btn{font-size:11px;padding:5px 6px;border-radius:6px}
+ body.sudoku-active #sudokuView{height:calc(100dvh - 51px)}
+ body.sudoku-active .sudoku-heading h1{font-size:17px}
+ body.sudoku-active .sudoku-heading .ui-btn{font-size:11px;padding:5px 8px}
+ body.sudoku-active .sudoku-shell{--sudoku-board-size:min(calc(100dvh - 178px),calc(100vw - 133px));grid-template-columns:43px var(--sudoku-board-size) 47px;gap:4px}
+ body.sudoku-active .sudoku-side-title{font-size:11px}
+ body.sudoku-active .sudoku-keypad button{border-radius:8px;font-size:18px;padding:0}
+ body.sudoku-active .sudoku-actions .ui-btn{font-size:11px;padding:5px 7px}
+ body.sudoku-active .sudoku-hint{display:none}
+}
+/* The badge must paint above the front face, but never above the next pile. */
+body.playing .card-pack .pile-size-badge{z-index:30!important;left:3px;top:55%;transform:translateY(-50%);font-size:12px;min-width:18px;height:18px;line-height:16px;background:#f1f9f4;color:#183d2e}
