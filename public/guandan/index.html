@@ -1891,7 +1891,7 @@ setLang(LANG);
   loadOffline(); render();
   if (IN_CLAUDE || q.get('mode') === 'offline') newRound(); else startScreen();
 })();
-try { if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !IN_CLAUDE) navigator.serviceWorker.register('sw.js?v=1.22.0').catch(() => {}); } catch (e) {}
+try { if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !IN_CLAUDE) navigator.serviceWorker.register('sw.js?v=1.22.1').catch(() => {}); } catch (e) {}
 }
 </script>
 </body>

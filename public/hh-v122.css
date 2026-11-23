@@ -81,3 +81,14 @@ body.playing[data-card-size="xlarge"] .hand-stack .hand-face .card-index strong{
  body.playing .felt>.bid-dock{max-height:93%!important;top:51%!important}
  .bid-dock-heading span{display:none}
 }
+
+/* v1.22.1: visible, explicit offline installation/readiness state. */
+.offline-install{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin:13px 0 16px;padding:13px 16px;background:rgba(13,83,80,.23);border:1px solid rgba(126,208,188,.42);border-radius:13px}
+.offline-install-copy{display:flex;flex-direction:column;min-width:210px;flex:1;gap:5px}
+.offline-install-copy strong{font-weight:800;font-size:15px}
+.offline-install-copy span{font-size:13px;line-height:1.45;color:#dce8e6}
+.offline-install button{white-space:normal;min-height:42px;font-size:14px;font-weight:800;padding:9px 16px;border-radius:9px;cursor:pointer}
+.offline-install[data-state="ready"]{border-color:rgba(119,227,161,.8)}
+.offline-install[data-state="error"]{border-color:rgba(251,153,129,.75)}
+.offline-install button:disabled{opacity:.8;cursor:wait}
+@media(max-width:560px){.offline-install{align-items:stretch;padding:11px}.offline-install button{width:100%}}

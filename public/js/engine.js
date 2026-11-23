@@ -1,7 +1,7 @@
 /* HHgames rules engine: zero external dependencies. JavaScript usable in browsers and Node. */
 (function(root){'use strict';
 const E={};
-E.VERSION='2026-11-23 · v1.22.0';
+E.VERSION='2026-11-23 · v1.22.1';
 E.SUITS=['S','H','D','C']; E.SYMBOL={S:'♠',H:'❤',D:'♦',C:'♣',J:'★',N:'NT'};
 E.DEFAULTS={decks:2, bonusOnTakeover:true, names:['Mr. Q','HH Boy','Prof. Wang','HH Girl'], difficulty:'expert', speed:'normal', language:'zh', allowThrows:true, kittyMultiplier:'classic', showHints:true, autoMrQ:false, handSort:'smart',dealSpeed:'normal',cardSize:'large',dealerMode:'teamRotation',counterbidTakesDealer:false,jMustDefend:true};
 const clone=x=>JSON.parse(JSON.stringify(x)); E.clone=clone;
