@@ -1,17 +1,24 @@
-// 离线缓存：先用本地缓存秒开，有网时在后台悄悄更新
-const CACHE = 'guandan-hhgames-v1.22.1-20261123';
-const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
-self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())));
-self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('guandan-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())));
-self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin || /\/(room|relay)/.test(e.request.url)) return;
-  const net = fetch(e.request).then(r => { if (r && r.ok) caches.open(CACHE).then(c => c.put(e.request, r.clone())); return r; }).catch(() => null);
-  e.waitUntil(net.then(() => {}));
-  // Prefer live HTML for navigation so Cloudflare updates are visible immediately.
-  // Fall back to cached game files when the iPad is offline.
-  if (e.request.mode === 'navigate') {
-    e.respondWith(net.then(r => r || caches.match(e.request, {ignoreSearch: true}).then(hit => hit || caches.match('./index.html'))));
-  } else {
-    e.respondWith(caches.match(e.request, {ignoreSearch: true}).then(hit => hit || net.then(r => r || caches.match('./index.html'))));
-  }
+/* HHgames v1.22.2 legacy Guandan compatibility worker.
+ * The main /sw.js now owns all pages. This one only keeps older installed
+ * Guandan shortcuts working until the old nested registration is removed. */
+const CACHE='guandan-hhgames-v1.22.2-migrate';
+const FILES=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./apple-touch-icon.png'];
+self.addEventListener('install',e=>e.waitUntil((async()=>{
+  const c=await caches.open(CACHE);
+  await Promise.all(FILES.map(async p=>{
+    try{const u=new URL(p,self.registration.scope).href;const r=await fetch(u);if(r.ok)await c.put(u,r.clone());}catch(e){}
+  }));
+  await self.skipWaiting();
+})()));
+self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
+self.addEventListener('fetch',e=>{
+  const req=e.request,u=new URL(req.url);
+  if(req.method!=='GET'||u.origin!==location.origin||/(?:^|\/)(?:relay|room)(?:\/|$)/.test(u.pathname))return;
+  e.respondWith((async()=>{
+    let cached=await caches.match(req,{ignoreSearch:true});
+    if(!cached && req.mode==='navigate')cached=await caches.match(new URL('./index.html',self.registration.scope).href);
+    if(cached)return cached;
+    try {const r=await fetch(req);if(r.ok) e.waitUntil(caches.open(CACHE).then(c=>c.put(req,r.clone())));return r;}
+    catch(err){return Response.error();}
+  })());
 });

@@ -1891,7 +1891,18 @@ setLang(LANG);
   loadOffline(); render();
   if (IN_CLAUDE || q.get('mode') === 'offline') newRound(); else startScreen();
 })();
-try { if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !IN_CLAUDE) navigator.serviceWorker.register('sw.js?v=1.22.1').catch(() => {}); } catch (e) {}
+// HHgames v1.22.2: the hub's single root service worker controls Guandan too.
+// Remove legacy /guandan/ service worker, which could hang offline navigation.
+try {
+ if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !IN_CLAUDE) {
+   (async function(){
+      const legacy=await navigator.serviceWorker.getRegistration('./');
+      if (legacy && legacy.scope===new URL('./',location.href).href) await legacy.unregister();
+      const root=await navigator.serviceWorker.register('../sw.js?v=1.22.2',{scope:'../',updateViaCache:'none'});
+      root.update().catch(()=>{});
+   })().catch(()=>{});
+ }
+} catch (e) {}
 }
 </script>
 </body>

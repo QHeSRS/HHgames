@@ -3,7 +3,7 @@
  "short_name":"HHgames",
  "description":"Offline-first Chinese card games, starting with Guandan and Tractor",
  "id":"./",
- "start_url":"./index.html",
+ "start_url":"./",
  "scope":"./",
  "display":"standalone",
  "orientation":"any",
